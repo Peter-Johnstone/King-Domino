@@ -1,0 +1,73 @@
+use crate::deck::Deck;
+use crate::domino::Domino;
+use crate::draft::Draft;
+use crate::turn::Turn;
+use crate::grid::Grid;
+use crate::gui::Gui;
+use crate::player::Player;
+
+struct Controller {
+    gui: Gui,
+    active_player: Turn,
+    draft: Draft,
+    deck: Deck,
+    players: [Player; 4],
+}
+
+impl Controller {
+
+
+
+
+    /// Performs the turn of the active player
+    ///
+    /// 1: Place the domino that we picked in the previous round
+    /// 2: Pick a new domino from the available domino list
+    /// 3: Advance the turn
+    fn perform_turn(&mut self) {
+
+        // Place cached domino
+        let last_picked = self.players[self.active_player as usize].last_picked();
+
+        // TODO: this is wrong! on the first turn of the game, the last_picked SHOULD be null
+        debug_assert_ne!(last_picked, Domino::null());
+
+
+        // Pick from draft
+
+
+        self.advance_turn();
+    }
+
+
+    /// Advanced the turn, performing any necessary actions
+    /// to do so (or ending the game, if over)
+    fn advance_turn(&mut self) {
+
+        if self.game_over() {
+            return;
+        }
+
+        if self.draft.is_empty() {
+            // we need to deal the new draft
+            self.draft = self.deck.new_draft();
+        }
+        
+        self.active_player.advance();
+    }
+    
+    
+
+    /// Ends the game
+    fn end_game(&mut self) {
+        return
+    }
+
+    /// Returns true iff all players have placed their last tile
+    fn game_over(&self) -> bool {
+        false
+    }
+
+
+}
+
