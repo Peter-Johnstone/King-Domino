@@ -1,4 +1,4 @@
-#[derive(Default, PartialEq, Debug, Copy)]
+#[derive(Default, PartialEq, Debug, Copy, Eq)]
 #[derive(Clone)]
 pub(crate) enum Types {
     Grass,
@@ -13,7 +13,7 @@ pub(crate) enum Types {
 }
 
 
-#[derive(Default, Clone, Debug, Copy)]
+#[derive(Default, Clone, Debug, Copy, Eq)]
 #[derive(PartialEq)]
 pub(crate) struct Tile {
     tile_type: Types,

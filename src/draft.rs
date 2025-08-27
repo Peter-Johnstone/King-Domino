@@ -10,9 +10,8 @@ pub(crate) struct Draft {
 impl Draft {
 
 
-    pub(crate) fn new(draft: [Domino; 4], len: usize) -> Draft {
-        let ordered_draft = draft;
-        
+    pub(crate) fn new(unsorted_draft: [Domino; 4], len: usize) -> Draft {
+        let mut draft = unsorted_draft;
         draft.sort();
         
         Draft {
