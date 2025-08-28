@@ -16,9 +16,6 @@ struct Controller {
 
 impl Controller {
 
-
-
-
     /// Performs the turn of the active player
     ///
     /// 1: Place the domino that we picked in the previous round
@@ -34,6 +31,9 @@ impl Controller {
 
 
         // Pick from draft
+        // TODO: we need to implement the logic for actually deciding which domino to pick
+        let pick_idx = 0;
+        self.draft.pick(0);
 
 
         self.advance_turn();
@@ -52,11 +52,13 @@ impl Controller {
             // we need to deal the new draft
             self.draft = self.deck.new_draft();
         }
-        
+
+
+        // Switch the active player
         self.active_player.advance();
     }
-    
-    
+
+
 
     /// Ends the game
     fn end_game(&mut self) {

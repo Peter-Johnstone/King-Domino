@@ -12,7 +12,7 @@ pub(crate) struct Deck {
 impl Deck {
     fn initial() -> Deck {
         Deck {
-            deck: DOMINO_SET.clone(),
+            deck: DOMINO_SET,
             len: 48,
         }
     }
@@ -32,8 +32,8 @@ impl Deck {
         self.len -= 1;
         self.deck.swap(num, self.len);
 
-        let picked = self.deck[num].clone();
-        self.deck[num].nullify();
+        let picked = self.deck[num];
+        self.deck[num] = Domino::null();
 
         picked
     }
