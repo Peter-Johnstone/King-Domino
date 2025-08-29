@@ -21,8 +21,8 @@ pub(crate) struct Tile {
 }
 
 impl Tile {
-    pub(crate) const fn new(tile_type: Types, crowns: u8) -> Tile {
-        Tile {
+    pub(crate) const fn new(tile_type: Types, crowns: u8) -> Self {
+        Self {
             tile_type,
             crowns,
         }

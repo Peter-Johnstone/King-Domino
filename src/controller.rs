@@ -1,13 +1,24 @@
-use crate::deck::Deck;
-use crate::domino::Domino;
-use crate::draft::Draft;
-use crate::turn::Turn;
-use crate::grid::Grid;
+use macroquad::input::{is_key_pressed, is_mouse_button_pressed, MouseButton};
+use macroquad::prelude::KeyCode;
+use macroquad::window::next_frame;
+use crate::components::deck::Deck;
+use crate::components::domino::Domino;
+use crate::components::draft::Draft;
+use crate::components::turn::Turn;
 use crate::gui::Gui;
-use crate::player::Player;
+use crate::components::player::Player;
+use crate::components::turn::Turn::{Player1, Player2, Player3, Player4};
 
-struct Controller {
+
+enum Phase {
+    Picking,
+    Placing
+}
+
+
+pub(crate) struct Controller {
     gui: Gui,
+    phase: Phase,
     active_player: Turn,
     draft: Draft,
     deck: Deck,
@@ -15,6 +26,73 @@ struct Controller {
 }
 
 impl Controller {
+
+
+    /// Create a controller object for the starting game state.
+    pub(crate) fn new() -> Self {
+
+        let players = [
+            Player::new(Player1),
+            Player::new(Player2),
+            Player::new(Player3),
+            Player::new(Player4),
+        ];
+
+
+        Self {
+            gui:            Gui::new(),
+            phase:          Phase::Picking,
+            active_player:  Player1,
+            draft:          Draft::empty(),
+            deck:           Deck::initial(),
+            players
+        }
+    }
+
+
+
+    /// Starts the game.
+    pub(crate) async fn start(&mut self) {
+
+        self.run().await;
+    }
+
+
+    /// Main game loop.
+    async fn run(&mut self) {
+
+        let running = true;
+
+        while running {
+
+            self.update();
+            self.gui.draw(&self.draft);
+            next_frame().await;
+
+        }
+    }
+
+
+
+
+
+
+    fn update(&mut self) {
+
+        match self.phase {
+
+            Phase::Picking => {
+
+            }
+
+            Phase::Placing => {
+
+            }
+        }
+    }
+
+
+
 
     /// Performs the turn of the active player
     ///

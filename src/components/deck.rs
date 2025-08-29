@@ -1,19 +1,22 @@
-use crate::domino::Domino;
-use crate::tile::Tile;
-use crate::tile::Types::{Forest, Grass, Mine, Swamp, Water, Wheat};
+
 use rand::Rng;
-use crate::draft::Draft;
+use crate::components::tile::Tile;
+use crate::components::tile::Types::{Forest, Grass, Mine, Swamp, Water, Wheat};
+use crate::components::domino::Domino;
+use crate::components::draft::Draft;
+
+pub(crate) const DECK_SIZE: usize = 48;
 
 pub(crate) struct Deck {
-    deck: [Domino; 48],
+    deck: [Domino; DECK_SIZE],
     len: usize,
 }
 
 impl Deck {
-    fn initial() -> Deck {
-        Deck {
+    pub(crate) fn initial() -> Self {
+        Self {
             deck: DOMINO_SET,
-            len: 48,
+            len: DECK_SIZE,
         }
     }
 
@@ -45,8 +48,7 @@ impl Deck {
         // make sure we have at least 4 dominoes in the deck
         debug_assert!(self.len >= 4);
         Draft::new([self.pick_random(), self.pick_random(),
-                       self.pick_random(), self.pick_random()],
-                   4)
+                       self.pick_random(), self.pick_random()])
     }
 
 }
