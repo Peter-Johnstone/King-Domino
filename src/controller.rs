@@ -29,7 +29,7 @@ impl Controller {
 
 
     /// Create a controller object for the starting game state.
-    pub(crate) fn new() -> Self {
+    pub(crate) async fn new() -> Self {
 
         let players = [
             Player::new(Player1),
@@ -38,13 +38,21 @@ impl Controller {
             Player::new(Player4),
         ];
 
+        let mut deck = Deck::initial();
+        let draft = deck.new_draft();
+
+        for domino in draft.iter() {
+            if domino.is_null() {
+                println!("FAIL!!");
+            }
+        }
 
         Self {
-            gui:            Gui::new(),
+            gui:            Gui::new().await,
             phase:          Phase::Picking,
             active_player:  Player1,
-            draft:          Draft::empty(),
-            deck:           Deck::initial(),
+            draft,
+            deck,
             players
         }
     }

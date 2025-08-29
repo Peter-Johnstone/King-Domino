@@ -35,7 +35,12 @@ impl Deck {
         self.len -= 1;
         self.deck.swap(num, self.len);
 
-        let picked = self.deck[num];
+        // We've moved the picked domino to the end
+        let picked = self.deck[self.len];
+
+        debug_assert!(!picked.is_null(), "Picked a null domino at idx {num}!");
+
+        // Optional but useful for debugging set the "used" domino to null
         self.deck[num] = Domino::null();
 
         picked

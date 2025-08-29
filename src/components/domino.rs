@@ -58,6 +58,10 @@ impl Domino
         self.selectable = false;
     }
 
+
+    /// Grabs the id of the domino
+    pub(crate) fn id(&self) -> u8 { self.id }
+
     pub(crate) fn is_selectable(&self) -> bool {
         self.selectable
     }

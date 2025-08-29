@@ -20,7 +20,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let mut controller = Controller::new();
+    let mut controller = Controller::new().await;
 
     controller.start().await;
 
