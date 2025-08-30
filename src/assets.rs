@@ -24,7 +24,10 @@ impl Assets {
         for id in 1..DECK_SIZE+1 {
 
 
-            let path = format!("res/img/domino_{}.png", 1); // +1 because our img names start with 1
+
+
+            // TODO: fix this path
+            let path = format!("res/img/domino_{}.png", id%9 + 1); // +1 because our img names start with 1
 
             // TODO: Add other domino images.
             //let path = format!("../res/img/domino_{}.png", id); // +1 because our img names start with 1
