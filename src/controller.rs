@@ -41,11 +41,6 @@ impl Controller {
         let mut deck = Deck::initial();
         let draft = deck.new_draft();
 
-        for domino in draft.iter() {
-            if domino.is_null() {
-                println!("FAIL!!");
-            }
-        }
 
         Self {
             gui:            Gui::new().await,
