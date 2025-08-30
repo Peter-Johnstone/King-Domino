@@ -19,7 +19,7 @@ enum Phase {
 pub(crate) struct Controller {
     gui: Gui,
     phase: Phase,
-    active_player: Turn,
+    current_turn: Turn,
     draft: Draft,
     deck: Deck,
     players: [Player; 4],
@@ -45,7 +45,7 @@ impl Controller {
         Self {
             gui:            Gui::new().await,
             phase:          Phase::Picking,
-            active_player:  Player1,
+            current_turn:   Player1,
             draft,
             deck,
             players
@@ -105,7 +105,7 @@ impl Controller {
     fn perform_turn(&mut self) {
 
         // Place cached domino
-        let last_picked = self.players[self.active_player as usize].last_picked();
+        let last_picked = self.players[self.current_turn as usize].last_picked();
 
         // TODO: this is wrong! on the first turn of the game, the last_picked SHOULD be null
         debug_assert_ne!(last_picked, Domino::null());
@@ -136,7 +136,7 @@ impl Controller {
 
 
         // Switch the active player
-        self.active_player.advance();
+        self.current_turn.advance();
     }
 
 
