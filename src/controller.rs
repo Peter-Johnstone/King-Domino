@@ -1,5 +1,3 @@
-use macroquad::input::{is_key_pressed, is_mouse_button_pressed, MouseButton};
-use macroquad::prelude::KeyCode;
 use macroquad::window::next_frame;
 use crate::components::deck::Deck;
 use crate::components::domino::Domino;
@@ -16,7 +14,7 @@ enum Phase {
 }
 
 
-pub(crate) struct Controller {
+pub struct Controller {
     gui: Gui,
     phase: Phase,
     current_turn: Turn,
@@ -29,7 +27,7 @@ impl Controller {
 
 
     /// Create a controller object for the starting game state.
-    pub(crate) async fn new() -> Self {
+    pub async fn new() -> Self {
 
         let players = [
             Player::new(Player1),
@@ -55,7 +53,7 @@ impl Controller {
 
 
     /// Starts the game.
-    pub(crate) async fn start(&mut self) {
+    pub async fn start(&mut self) {
 
         self.run().await;
     }
@@ -77,18 +75,30 @@ impl Controller {
 
 
 
-
-
-
     fn update(&mut self) {
 
+        let idx = self.current_turn.idx();
         match self.phase {
 
             Phase::Picking => {
+                let picked = {
+                    let player_ref = &self.players[idx];
+                    Gui::picked_draft_domino(&mut self.draft, player_ref)
+                };
 
+                if let Some(domino) = picked {
+                    self.players[idx].update_last_picked(domino);
+                    self.phase = Phase::Placing;
+                }
             }
 
             Phase::Placing => {
+                if self.players[idx].is_not_placing() {
+                    // Annoying exception during the first round of the game. We pick but do not place.
+                    self.phase = Phase::Picking;
+                    self.advance_turn();
+                    return;
+                }
 
             }
         }
@@ -105,7 +115,7 @@ impl Controller {
     fn perform_turn(&mut self) {
 
         // Place cached domino
-        let last_picked = self.players[self.current_turn as usize].last_picked();
+        let last_picked = self.players[self.current_turn.idx()].last_picked();
 
         // TODO: this is wrong! on the first turn of the game, the last_picked SHOULD be null
         debug_assert_ne!(last_picked, Domino::null());
@@ -114,7 +124,6 @@ impl Controller {
         // Pick from draft
         // TODO: we need to implement the logic for actually deciding which domino to pick
         let pick_idx = 0;
-        self.draft.pick(0);
 
 
         self.advance_turn();
