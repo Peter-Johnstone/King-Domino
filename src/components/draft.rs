@@ -1,10 +1,12 @@
 use crate::components::domino::Domino;
+use crate::components::player::Player;
 
-
-const DRAFT_SIZE: usize = 4;
+pub(crate) const DRAFT_SIZE: usize = 4;
 
 pub(crate) struct Draft {
 
+
+    been_selected_by: [Option<Player>; DRAFT_SIZE],
     draft: [Domino; DRAFT_SIZE],
     picked: usize,
 }
@@ -17,20 +19,30 @@ impl Draft {
         draft.sort();
 
         Self {
+            been_selected_by: [None; DRAFT_SIZE],
             draft,
             picked: 0,
         }
     }
 
 
+
     /// Creates a new empty draft with len 0
     pub(crate) fn empty() -> Self {
 
         Self {
-            draft: [Domino::null(), Domino::null(), Domino::null(), Domino::null()],
+            been_selected_by: [None; DRAFT_SIZE],
+            draft: [Domino::null(); DRAFT_SIZE],
             picked: DRAFT_SIZE,
         }
 
+    }
+
+
+    pub(crate) fn player_on(&self, idx: usize) -> Option<Player> {
+        debug_assert!(self.picked <= DRAFT_SIZE);
+
+        self.been_selected_by[idx]
     }
 
 
@@ -45,18 +57,24 @@ impl Draft {
 
     }
 
+    pub(crate) fn pickable(&self, idx: usize) -> bool {
+        debug_assert!(idx < DRAFT_SIZE);
+
+        self.been_selected_by[idx].is_none()
+    }
+
 
     /// Picks the domino at the index from the draft
-    pub(crate) fn pick(&mut self, idx: usize) -> Domino {
-        // make sure we pick a valid index, and there are still dominos left to be picked
+    pub(crate) fn pick(&mut self, idx: usize, player: &Player) -> Domino {
+        // make sure we pick a valid index, and there are still dominoes left to be picked
         debug_assert!(idx < DRAFT_SIZE && !self.is_empty());
 
         // make sure we haven't already picked the domino
-        debug_assert!(self.draft[idx].is_selectable());
+        debug_assert!(self.pickable(idx));
 
         self.picked += 1;
 
-        self.draft[idx].select();
+        self.been_selected_by[idx] = Some(*player);
 
         self.draft[idx]
     }
@@ -66,7 +84,6 @@ impl Draft {
 
         self.draft[..DRAFT_SIZE].iter()
     }
-
 
 
 }

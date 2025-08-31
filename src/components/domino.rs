@@ -4,7 +4,6 @@ use crate::components::tile::Tile;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Domino
 {
-    selectable: bool,
     id: u8,
     tile1: Tile,
     tile2: Tile,
@@ -32,7 +31,6 @@ impl Domino
 
     pub(crate) const fn new(id: u8, tile1: Tile, tile2: Tile) -> Self {
         Self {
-            selectable: true,
             id,
             tile1,
             tile2
@@ -47,24 +45,16 @@ impl Domino
     /// returns a null domino
     pub(crate) fn null() -> Self {
         Self {
-            selectable: false,
             id: NULL_ID,
             tile1: Tile::default(),
             tile2: Tile::default(),
         }
     }
 
-    pub(crate) fn select(&mut self) {
-        self.selectable = false;
-    }
 
 
     /// Grabs the id of the domino
     pub(crate) fn id(&self) -> u8 { self.id }
-
-    pub(crate) fn is_selectable(&self) -> bool {
-        self.selectable
-    }
-
+    
 
 }

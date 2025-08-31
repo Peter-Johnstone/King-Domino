@@ -1,10 +1,6 @@
 
 use macroquad::prelude::Conf;
-use crate::controller::Controller;
-mod controller;
-mod gui;
-mod components;
-mod assets;
+use kingdomino::controller::Controller;
 
 /// The configuration of the application window
 fn window_conf() -> Conf {
@@ -21,7 +17,6 @@ fn window_conf() -> Conf {
 async fn main() {
 
     let mut controller = Controller::new().await;
-
     controller.start().await;
 
 }

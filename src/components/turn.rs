@@ -1,6 +1,6 @@
 use num_enum::TryFromPrimitive;
 
-static NUM_PLAYERS: u8 = 2;
+pub(crate) static NUM_PLAYERS: u8 = 4;
 
 #[repr(u8)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, TryFromPrimitive)]
@@ -17,6 +17,10 @@ impl Turn {
     pub(crate) fn advance(&mut self) {
         let next = ((*self as u8) + 1) % NUM_PLAYERS;
         *self = Turn::try_from(next).unwrap();
+    }
+    
+    pub(crate) fn idx(&self) -> usize {
+        *self as usize
     }
 
 }

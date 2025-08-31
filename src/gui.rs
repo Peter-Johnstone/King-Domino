@@ -1,12 +1,13 @@
 use std::any::Any;
 use macroquad::color::WHITE;
 use macroquad::input::{is_key_pressed, is_mouse_button_pressed, MouseButton};
-use macroquad::prelude::{clear_background, draw_texture_ex, DrawTextureParams, Vec2};
+use macroquad::prelude::{clear_background, draw_texture_ex, mouse_position, screen_height, DrawTextureParams, Vec2};
+use macroquad::window::screen_width;
 use crate::assets::Assets;
 use crate::components::domino::Domino;
-use crate::components::draft::Draft;
-
-
+use crate::components::draft;
+use crate::components::draft::{Draft, DRAFT_SIZE};
+use crate::components::player::Player;
 
 mod board_gui {
     use macroquad::prelude::Color;
@@ -21,8 +22,9 @@ mod board_gui {
 
 /// Holds the constants related to the display of the draft
 mod draft_gui {
-    pub(crate) const TOP_DOMINO_POSITION: (f32, f32) = (150.0, 150.0);
-    pub(crate) const DOMINO_SIZE: f32 = 100.0;
+
+    pub(crate) const DOMINO_X: f32 = 150.0;
+    pub(crate) const DOMINO_TILE_SIZE: f32 = 100.0;
 
     // The vertical spacing between the draft dominoes
     pub(crate) const VERT_OFFSET: f32 = 120.0;
@@ -51,17 +53,32 @@ impl Gui {
         }
     }
 
-    pub(crate) fn picked_domino() -> Option<Domino> {
 
+    /// Returns the domino if we clicked a domino in the draft
+    pub(crate) fn picked_draft_domino(draft: &mut Draft, cur_player: &Player) -> Option<Domino> {
         if is_mouse_button_pressed(MouseButton::Left) {
-            // TODO: Handle input to check if we clicked on one of the dominoes in the draft
+            let (mx, my) = mouse_position();
 
+            // X bounds of the draft area
+            let x_min = draft_gui::DOMINO_X;
+            let x_max = draft_gui::DOMINO_X + 2.0 * draft_gui::DOMINO_TILE_SIZE;
 
+            if mx >= x_min && mx <= x_max {
+                let top = Self::top_draft_domino_y();
+
+                for i in 0..DRAFT_SIZE {
+                    let y_min = top + i as f32 * draft_gui::VERT_OFFSET;
+                    let y_max = y_min + draft_gui::DOMINO_TILE_SIZE;
+
+                    if my >= y_min && my <= y_max && draft.pickable(i) {
+                        return Some(draft.pick(i, cur_player));
+                    }
+                }
+            }
         }
-
-
         None
     }
+
 
     pub(crate) fn draw(&self, draft: &Draft) {
         clear_background(board_gui::BACKGROUND_COLOR);
@@ -71,25 +88,51 @@ impl Gui {
 
     }
 
+    fn top_draft_domino_y() -> f32 {
+        // Half screen plus the two dominoes above the halfway point
+        screen_height()/2.0 - (DRAFT_SIZE as f32/2.0) * draft_gui::VERT_OFFSET
+    }
+
     fn draw_draft(&self, draft: &Draft) {
 
 
+        let top_domino_y = Self::top_draft_domino_y();
+
         for (i, domino) in draft.iter().enumerate() {
 
-            self.draw_domino(domino, draft_gui::DOMINO_SIZE,
-                              draft_gui::TOP_DOMINO_POSITION.0,
-                              draft_gui::TOP_DOMINO_POSITION.1 + (i as f32 * draft_gui::VERT_OFFSET))
+            self.draw_domino(domino, draft_gui::DOMINO_TILE_SIZE,
+                             draft_gui::DOMINO_X,
+                             top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
 
+            if let Some(player) = draft.player_on(i) {
+                self.draw_meeple_on_domino(player.my_turn().idx(),
+                                           draft_gui::DOMINO_X,
+                                           top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
+            }
 
 
         }
 
     }
 
+    fn draw_meeple_on_domino(&self, player_idx: usize, domino_x: f32, domino_y: f32) {
+
+        let texture = self.assets.fetch_king_texture_by_turn(player_idx as u8);
+
+        debug_assert_ne!(texture, None);
+
+        let texture = texture.unwrap(); // extract from Some(texture) -> texture
+
+
+        // Draw the texture on the board. x is twice as large as y, by nature of what a domino is and our orientation.
+        draw_texture_ex(texture, domino_x, domino_y, WHITE, DrawTextureParams {
+            dest_size: Some(Vec2::new(30.0, 30.0)),
+            ..Default::default()
+        }, );
+    }
 
     fn draw_domino(&self, domino: &Domino, tile_size: f32, x: f32, y: f32) {
 
-        // TODO: Get the texture of the domino from some asset dictionary
         let texture = self.assets.fetch_domino_texture_by_id(domino.id());
 
         // Make sure we actually got the texture back!

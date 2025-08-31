@@ -1,9 +1,9 @@
-
+use std::array;
 use rand::Rng;
 use crate::components::tile::Tile;
 use crate::components::tile::Types::{Forest, Grass, Mine, Swamp, Water, Wheat};
 use crate::components::domino::Domino;
-use crate::components::draft::Draft;
+use crate::components::draft::{Draft, DRAFT_SIZE};
 
 pub(crate) const DECK_SIZE: usize = 48;
 
@@ -38,10 +38,10 @@ impl Deck {
         // We've moved the picked domino to the end
         let picked = self.deck[self.len];
 
-        debug_assert!(!picked.is_null(), "Picked a null domino at idx {num}!");
+        debug_assert!(!picked.is_null(), "Picked a null domino at idx {num}.");
 
         // Optional but useful for debugging set the "used" domino to null
-        self.deck[num] = Domino::null();
+        self.deck[self.len] = Domino::null();
 
         picked
     }
@@ -51,9 +51,9 @@ impl Deck {
     pub(crate) fn new_draft(&mut self) -> Draft {
 
         // make sure we have at least 4 dominoes in the deck
-        debug_assert!(self.len >= 4);
-        Draft::new([self.pick_random(), self.pick_random(),
-                       self.pick_random(), self.pick_random()])
+        debug_assert!(self.len >= DRAFT_SIZE);
+
+        Draft::new(array::from_fn(|_| self.pick_random()))
     }
 
 }
