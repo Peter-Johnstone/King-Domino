@@ -18,7 +18,8 @@ pub struct Controller {
     gui: Gui,
     phase: Phase,
     current_turn: Turn,
-    draft: Draft,
+    pick_draft: Draft,
+    place_draft: Draft,
     deck: Deck,
     players: [Player; 4],
 }
@@ -44,7 +45,8 @@ impl Controller {
             gui:            Gui::new().await,
             phase:          Phase::Picking,
             current_turn:   Player1,
-            draft,
+            pick_draft:     draft,
+            place_draft:    Draft::null(),
             deck,
             players
         }
@@ -67,7 +69,7 @@ impl Controller {
         while running {
 
             self.update();
-            self.gui.draw(&self.draft);
+            self.gui.draw(&self.pick_draft, &self.place_draft);
             next_frame().await;
 
         }
@@ -83,7 +85,7 @@ impl Controller {
             Phase::Picking => {
                 let picked = {
                     let player_ref = &self.players[idx];
-                    Gui::picked_draft_domino(&mut self.draft, player_ref)
+                    Gui::picked_draft_domino(&mut self.pick_draft, player_ref)
                 };
 
                 if let Some(domino) = picked {
@@ -138,9 +140,11 @@ impl Controller {
             return;
         }
 
-        if self.draft.is_empty() {
+        if self.pick_draft.is_empty() {
             // we need to deal the new draft
-            self.draft = self.deck.new_draft();
+            println!("Getting here!");
+            self.place_draft = self.pick_draft.clone();
+            self.pick_draft = self.deck.new_draft();
         }
 
 

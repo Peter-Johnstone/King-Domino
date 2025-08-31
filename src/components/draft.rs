@@ -3,6 +3,8 @@ use crate::components::player::Player;
 
 pub(crate) const DRAFT_SIZE: usize = 4;
 
+
+#[derive(Clone)]
 pub(crate) struct Draft {
 
 
@@ -28,7 +30,7 @@ impl Draft {
 
 
     /// Creates a new empty draft with len 0
-    pub(crate) fn empty() -> Self {
+    pub(crate) fn null() -> Self {
 
         Self {
             been_selected_by: [None; DRAFT_SIZE],
@@ -36,6 +38,12 @@ impl Draft {
             picked: DRAFT_SIZE,
         }
 
+    }
+
+    /// Checks if the draft is null
+    pub(crate) fn is_null(&self) -> bool {
+        // draft is null iff the first domino inside it is null
+        self.draft[0].is_null()
     }
 
 
