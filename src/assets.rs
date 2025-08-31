@@ -36,7 +36,7 @@ impl Assets {
 
 
             // TODO: fix this path
-            let path = format!("res/img/dominoes/domino_{}.png", id % 20 + 1); // +1 because our img names start with 1
+            let path = format!("res/img/dominoes/domino_{}.png", id % 39 + 1); // +1 because our img names start with 1
 
             // TODO: Add other domino images.
             //let path = format!("../res/img/domino_{}.png", id); // +1 because our img names start with 1
