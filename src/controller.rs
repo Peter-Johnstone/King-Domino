@@ -90,14 +90,12 @@ impl Controller {
 
                 if let Some(domino) = picked {
                     self.players[idx].update_last_picked(domino);
-                    println!("Updating last picked domino for player idx {idx}");
                     self.phase = Phase::Placing;
                 }
             }
 
             Phase::Placing => {
                 if self.players[idx].is_not_placing() {
-                    println!("Player {} is not placing", idx);
                     // Annoying exception during the first round of the game. We pick but do not place.
                     self.phase = Phase::Picking;
                     self.advance_turn();
