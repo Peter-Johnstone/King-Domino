@@ -58,6 +58,7 @@ impl Draft {
         });
     }
 
+    /// Returns the id of the player on the domino index of the draft (or none, if no player sits on the domino)
     pub(crate) fn player_on(&self, idx: usize) -> Option<u8> {
         debug_assert!(self.picked <= DRAFT_SIZE);
 
