@@ -90,12 +90,14 @@ impl Controller {
 
                 if let Some(domino) = picked {
                     self.players[idx].update_last_picked(domino);
+                    println!("Updating last picked domino for player idx {idx}");
                     self.phase = Phase::Placing;
                 }
             }
 
             Phase::Placing => {
                 if self.players[idx].is_not_placing() {
+                    println!("Player {} is not placing", idx);
                     // Annoying exception during the first round of the game. We pick but do not place.
                     self.phase = Phase::Picking;
                     self.advance_turn();
@@ -142,9 +144,10 @@ impl Controller {
 
         if self.pick_draft.is_empty() {
             // we need to deal the new draft
-            self.players = self.pick_draft.get_new_order();
             self.place_draft = self.pick_draft.clone();
             self.pick_draft = self.deck.new_draft();
+            self.place_draft.apply_new_order(&mut self.players);
+
         }
 
 

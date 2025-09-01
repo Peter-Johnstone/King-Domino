@@ -70,7 +70,7 @@ impl Gui {
                     let y_max = y_min + draft_gui::DOMINO_TILE_SIZE;
 
                     if my >= y_min && my <= y_max && draft.pickable(i) {
-                        return Some(draft.pick(i, cur_player));
+                        return Some(draft.pick(i, &cur_player.id()));
                     }
                 }
             }
@@ -111,8 +111,8 @@ impl Gui {
                              domino_x,
                              top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
 
-            if let Some(player) = draft.player_on(i) {
-                self.draw_king_on_domino(player.id() as usize,
+            if let Some(id) = draft.player_on(i) {
+                self.draw_king_on_domino(id as usize,
                                          domino_x,
                                          top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
             }

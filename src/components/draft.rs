@@ -8,7 +8,7 @@ pub(crate) const DRAFT_SIZE: usize = 4;
 pub(crate) struct Draft {
 
 
-    been_selected_by: [Option<Player>; DRAFT_SIZE],
+    been_selected_by: [Option<u8>; DRAFT_SIZE],
     draft: [Domino; DRAFT_SIZE],
     picked: usize,
 }
@@ -48,19 +48,17 @@ impl Draft {
 
 
     /// Returns the new player order. Called on the pick draft as it becomes the place draft.
-    pub(crate) fn get_new_order(&self) -> [Player; DRAFT_SIZE] {
-
+    pub(crate) fn apply_new_order(&self, players: &mut [Player; DRAFT_SIZE]) {
         debug_assert!(self.is_empty());
-
-        let players: [Player; DRAFT_SIZE] = std::array::from_fn(|i| {
-            self.been_selected_by[i].unwrap()
+        players.sort_by_key(|p| {
+            self.been_selected_by
+                .iter()
+                .position(|&slot| slot == Some(p.id()))   // or p.id if it's a field
+                .expect("player id not found in been_selected_by")
         });
-
-        players
     }
 
-
-    pub(crate) fn player_on(&self, idx: usize) -> Option<Player> {
+    pub(crate) fn player_on(&self, idx: usize) -> Option<u8> {
         debug_assert!(self.picked <= DRAFT_SIZE);
 
         self.been_selected_by[idx]
@@ -86,7 +84,7 @@ impl Draft {
 
 
     /// Picks the domino at the index from the draft
-    pub(crate) fn pick(&mut self, idx: usize, player: &Player) -> Domino {
+    pub(crate) fn pick(&mut self, idx: usize, player_id: &u8) -> Domino {
         // make sure we pick a valid index, and there are still dominoes left to be picked
         debug_assert!(idx < DRAFT_SIZE && !self.is_empty());
 
@@ -95,7 +93,7 @@ impl Draft {
 
         self.picked += 1;
 
-        self.been_selected_by[idx] = Some(*player);
+        self.been_selected_by[idx] = Some(*player_id);
 
         self.draft[idx]
     }

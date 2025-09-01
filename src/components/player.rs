@@ -41,10 +41,14 @@ impl Player {
 
     pub(crate) fn update_last_picked(&mut self, domino: Domino) {
         // We are now placing the domino we stored from last round.
+        println!("before: self.picked: {:?}, self.placing: {:?}", self.picked, self.placing);
+
         self.placing = self.picked;
 
         // Now we cache the new picked domino
         self.picked = domino;
+
+        println!("after: self.picked: {:?}, self.placing: {:?}", self.picked, self.placing);
 
     }
 
