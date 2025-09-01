@@ -24,11 +24,11 @@ mod board_gui {
 mod draft_gui {
 
     pub(crate) const PICK_DOMINO_X: f32 = 100.0;
-    pub(crate) const PLACE_DOMINO_X: f32 = 350.0;
+    pub(crate) const PLACE_DOMINO_X: f32 = 320.0;
     pub(crate) const DOMINO_TILE_SIZE: f32 = 100.0;
 
     // The vertical spacing between the draft dominoes
-    pub(crate) const VERT_OFFSET: f32 = 120.0;
+    pub(crate) const VERT_OFFSET: f32 = 117.0;
 }
 
 
@@ -81,9 +81,9 @@ impl Gui {
     }
 
 
+    /// The overarching draw function. Called each frame of the game.
     pub(crate) fn draw(&self, pick_draft: &Draft, place_draft: &Draft) {
         clear_background(board_gui::BACKGROUND_COLOR);
-
 
         self.draw_draft(pick_draft, draft_gui::PICK_DOMINO_X);
 
@@ -91,9 +91,9 @@ impl Gui {
             self.draw_draft(place_draft, draft_gui::PLACE_DOMINO_X);
 
         }
-
     }
 
+    /// Returns the y coordinate of the top domino of the draft. Calculated based on screen height and draft size.
     fn top_draft_domino_y() -> f32 {
         // Half screen plus the two dominoes above the halfway point
         screen_height()/2.0 - (DRAFT_SIZE as f32/2.0) * draft_gui::VERT_OFFSET
@@ -114,9 +114,9 @@ impl Gui {
                              top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
 
             if let Some(player) = draft.player_on(i) {
-                self.draw_meeple_on_domino(player.my_turn().idx(),
-                                           domino_x,
-                                           top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
+                self.draw_king_on_domino(player.my_turn().idx(),
+                                         domino_x,
+                                         top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
             }
 
 
@@ -124,7 +124,9 @@ impl Gui {
 
     }
 
-    fn draw_meeple_on_domino(&self, player_idx: usize, domino_x: f32, domino_y: f32) {
+
+    /// Takes the coordinates of a domino and draws the king meeple on top of it. The player idx determines color.
+    fn draw_king_on_domino(&self, player_idx: usize, domino_x: f32, domino_y: f32) {
 
         let texture = self.assets.fetch_king_texture_by_turn(player_idx as u8);
 
@@ -132,12 +134,13 @@ impl Gui {
 
         let texture = texture.unwrap(); // extract from Some(texture) -> texture
 
-        let size = 40.0;
+        // Size of the king drawn is scaled off of the
+        const SIZE: f32 = draft_gui::DOMINO_TILE_SIZE/2.5;
 
         // Draw the texture on the board. x is twice as large as y, by nature of what a domino is and our orientation.
-        draw_texture_ex(texture, domino_x + draft_gui::DOMINO_TILE_SIZE - size/2.0,
-                        domino_y + draft_gui::DOMINO_TILE_SIZE/2.0 - size/2.0, WHITE, DrawTextureParams {
-            dest_size: Some(Vec2::new(size, size)),
+        draw_texture_ex(texture, domino_x + draft_gui::DOMINO_TILE_SIZE - SIZE/2.0,
+                        domino_y + draft_gui::DOMINO_TILE_SIZE/2.0 - SIZE/2.0, WHITE, DrawTextureParams {
+            dest_size: Some(Vec2::new(SIZE, SIZE)),
             ..Default::default()
         }, );
     }
