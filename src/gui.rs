@@ -1,11 +1,9 @@
 use std::any::Any;
 use macroquad::color::WHITE;
-use macroquad::input::{is_key_pressed, is_mouse_button_pressed, MouseButton};
+use macroquad::input::{is_mouse_button_pressed, MouseButton};
 use macroquad::prelude::{clear_background, draw_texture_ex, mouse_position, screen_height, DrawTextureParams, Vec2};
-use macroquad::window::screen_width;
 use crate::assets::Assets;
 use crate::components::domino::Domino;
-use crate::components::draft;
 use crate::components::draft::{Draft, DRAFT_SIZE};
 use crate::components::player::Player;
 
@@ -114,7 +112,7 @@ impl Gui {
                              top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
 
             if let Some(player) = draft.player_on(i) {
-                self.draw_king_on_domino(player.my_turn().idx(),
+                self.draw_king_on_domino(player.id() as usize,
                                          domino_x,
                                          top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
             }

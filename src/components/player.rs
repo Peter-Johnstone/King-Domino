@@ -1,20 +1,18 @@
 use crate::components::domino::Domino;
 use crate::components::grid::Grid;
-use crate::components::turn::Turn;
-
 
 #[derive(Clone, Copy)]
 pub(crate) struct Player {
-    my_turn: Turn,
+    id: u8,
     picked: Domino,
     placing: Domino,
     grid: Grid,
 }
 
 impl Player {
-    pub(crate) fn new(my_turn: Turn) -> Self {
+    pub(crate) fn new(id: u8) -> Self {
         Self {
-            my_turn,
+            id,
             picked: Domino::null(),
             placing: Domino::null(),
             grid: Grid::empty(),
@@ -37,8 +35,8 @@ impl Player {
         self.placing.is_null()
     }
 
-    pub(crate) fn my_turn(&self) -> Turn {
-        self.my_turn
+    pub(crate) fn id(&self) -> u8 {
+        self.id
     }
 
     pub(crate) fn update_last_picked(&mut self, domino: Domino) {

@@ -47,6 +47,19 @@ impl Draft {
     }
 
 
+    /// Returns the new player order. Called on the pick draft as it becomes the place draft.
+    pub(crate) fn get_new_order(&self) -> [Player; DRAFT_SIZE] {
+
+        debug_assert!(self.is_empty());
+
+        let players: [Player; DRAFT_SIZE] = std::array::from_fn(|i| {
+            self.been_selected_by[i].unwrap()
+        });
+
+        players
+    }
+
+
     pub(crate) fn player_on(&self, idx: usize) -> Option<Player> {
         debug_assert!(self.picked <= DRAFT_SIZE);
 

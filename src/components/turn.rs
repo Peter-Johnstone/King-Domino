@@ -5,10 +5,10 @@ pub(crate) static NUM_PLAYERS: u8 = 4;
 #[repr(u8)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, TryFromPrimitive)]
 pub(crate) enum Turn {
-    #[default]Player1,
-    Player2,
-    Player3,
-    Player4,
+    #[default]Prio1,
+    Prio2,
+    Prio3,
+    Prio4,
 }
 
 impl Turn {

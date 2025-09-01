@@ -34,12 +34,7 @@ impl Assets {
         // Creates the dictionary to be able to fetch the domino texture from the domino id
         for id in 1..DECK_SIZE + 1 {
 
-
-            // TODO: fix this path
-            let path = format!("res/img/dominoes/domino_{}.png", id % 39 + 1); // +1 because our img names start with 1
-
-            // TODO: Add other domino images.
-            //let path = format!("../res/img/domino_{}.png", id); // +1 because our img names start with 1
+            let path = format!("res/img/dominoes/domino_{}.png", id); // +1 because our img names start with 1
 
             let texture = load_texture(&path).await.unwrap();
             texture.set_filter(FilterMode::Nearest);
@@ -66,9 +61,9 @@ impl Assets {
     pub(crate) fn fetch_king_texture_by_turn(&self, id: u8) -> Option<&Texture2D> {
 
         // We should never fetch an impossible id
-        assert!(self.king_by_turn.contains_key(&(id+1)), "id: {id}");
+        assert!(self.king_by_turn.contains_key(&id), "id: {id}");
 
-        self.king_by_turn.get(&(id+1))
+        self.king_by_turn.get(&id)
     }
 
     /// Fetches the domino texture given an id between 1 and 48

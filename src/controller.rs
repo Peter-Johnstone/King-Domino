@@ -5,7 +5,7 @@ use crate::components::draft::Draft;
 use crate::components::turn::Turn;
 use crate::gui::Gui;
 use crate::components::player::Player;
-use crate::components::turn::Turn::{Player1, Player2, Player3, Player4};
+use crate::components::turn::Turn::{Prio1};
 
 
 enum Phase {
@@ -31,10 +31,10 @@ impl Controller {
     pub async fn new() -> Self {
 
         let players = [
-            Player::new(Player1),
-            Player::new(Player2),
-            Player::new(Player3),
-            Player::new(Player4),
+            Player::new(1),
+            Player::new(2),
+            Player::new(3),
+            Player::new(4),
         ];
 
         let mut deck = Deck::initial();
@@ -44,7 +44,7 @@ impl Controller {
         Self {
             gui:            Gui::new().await,
             phase:          Phase::Picking,
-            current_turn:   Player1,
+            current_turn: Prio1,
             pick_draft:     draft,
             place_draft:    Draft::null(),
             deck,
@@ -142,7 +142,7 @@ impl Controller {
 
         if self.pick_draft.is_empty() {
             // we need to deal the new draft
-            println!("Getting here!");
+            self.players = self.pick_draft.get_new_order();
             self.place_draft = self.pick_draft.clone();
             self.pick_draft = self.deck.new_draft();
         }
