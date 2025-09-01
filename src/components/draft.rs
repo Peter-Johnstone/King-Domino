@@ -53,7 +53,7 @@ impl Draft {
         players.sort_by_key(|p| {
             self.been_selected_by
                 .iter()
-                .position(|&slot| slot == Some(p.id()))   // or p.id if it's a field
+                .position(|&slot| slot == Some(p.id()))
                 .expect("player id not found in been_selected_by")
         });
     }
@@ -84,7 +84,7 @@ impl Draft {
 
 
     /// Picks the domino at the index from the draft
-    pub(crate) fn pick(&mut self, idx: usize, player_id: &u8) -> Domino {
+    pub(crate) fn pick(&mut self, idx: usize, player_id: u8) -> Domino {
         // make sure we pick a valid index, and there are still dominoes left to be picked
         debug_assert!(idx < DRAFT_SIZE && !self.is_empty());
 
@@ -93,7 +93,7 @@ impl Draft {
 
         self.picked += 1;
 
-        self.been_selected_by[idx] = Some(*player_id);
+        self.been_selected_by[idx] = Some(player_id);
 
         self.draft[idx]
     }

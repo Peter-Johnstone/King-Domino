@@ -70,7 +70,7 @@ impl Gui {
                     let y_max = y_min + draft_gui::DOMINO_TILE_SIZE;
 
                     if my >= y_min && my <= y_max && draft.pickable(i) {
-                        return Some(draft.pick(i, &cur_player.id()));
+                        return Some(draft.pick(i, cur_player.id()));
                     }
                 }
             }
