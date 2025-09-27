@@ -84,23 +84,27 @@ impl Controller {
 
             Phase::Picking => {
                 let picked = {
-                    let player_ref = &self.players[idx];
+                    // pass a mutable reference so GUI/pick logic can update player state if needed
+                    let player_ref = &mut self.players[idx];
                     Gui::picked_draft_domino(&mut self.pick_draft, player_ref)
                 };
 
                 if let Some(domino) = picked {
                     self.players[idx].update_last_picked(domino);
-                    self.phase = Phase::Placing;
+                    // After a pick, advance to the next player so everyone gets to pick from
+                    // the current pick draft before we move to the placing phase.
+                    self.advance_turn();
+                    //print!("Player {} picked domino {}\n", idx+1, domino.id());
                 }
             }
 
             Phase::Placing => {
-                if self.players[idx].is_not_placing() {
-                    // Annoying exception during the first round of the game. We pick but do not place.
-                    self.phase = Phase::Picking;
-                    self.advance_turn();
-                    return;
-                }
+                // if self.players[idx].is_not_placing() {
+                //     // Annoying exception during the first round of the game. We pick but do not place.
+                //     self.phase = Phase::Picking;
+                //     self.advance_turn();
+                //     return;
+                // }
 
             }
         }
@@ -141,15 +145,19 @@ impl Controller {
         }
 
         if self.pick_draft.is_empty() {
-            // we need to deal the new draft
+            // All players have picked from the current pick_draft. Turn it into the place_draft
+            // and start the placing phase. Reset the current turn to the first placement priority.
             self.place_draft = self.pick_draft.clone();
             self.pick_draft = self.deck.new_draft();
             self.place_draft.apply_new_order(&mut self.players);
 
+            // Enter placing phase and start with the first priority
+            self.phase = Phase::Placing;
+            self.current_turn = Prio1;
+            return;
         }
 
-
-        // Switch the active player
+        // Otherwise simply advance to the next player for picking
         self.current_turn.advance();
     }
 
