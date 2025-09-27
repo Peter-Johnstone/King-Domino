@@ -43,7 +43,7 @@ impl Controller {
 
         Self {
             gui:            Gui::new().await,
-            phase:          Phase::Picking,
+            phase:          Phase::Placing, //The anatomy of a turn is: P1 place, P1 pick, P2 place, P2 pick...
             current_turn: Prio1,
             pick_draft:     draft,
             place_draft:    Draft::null(),
@@ -82,6 +82,29 @@ impl Controller {
         let idx = self.current_turn.idx();
         match self.phase {
 
+
+            //will cycle 4 times per turn cycle
+            Phase::Placing => {
+                //First turn Skipping
+                if self.players[idx].is_not_placing() {
+                    // Annoying exception during the first round of the game. We pick but do not place.
+                    self.phase = Phase::Picking;
+                    self.advance_turn();
+                    return;
+                }
+                //Laster turn skipping
+                if self.players[idx].has_placed_all_dominoes() {
+                    print!("GAME OVER for player {}", idx);
+                    self.advance_turn();
+                    return;
+                }
+
+                self.players[idx].domino_placement();
+                
+                self.advance_turn();
+                self.phase = Phase::Picking;
+            }
+
             Phase::Picking => {
                 let picked = {
                     // pass a mutable reference so GUI/pick logic can update player state if needed
@@ -91,22 +114,14 @@ impl Controller {
 
                 if let Some(domino) = picked {
                     self.players[idx].update_last_picked(domino);
-                    // After a pick, advance to the next player so everyone gets to pick from
+
                     // the current pick draft before we move to the placing phase.
-                    self.advance_turn();
+                    self.phase = Phase::Placing;
+                    
                     //print!("Player {} picked domino {}\n", idx+1, domino.id());
                 }
             }
 
-            Phase::Placing => {
-                // if self.players[idx].is_not_placing() {
-                //     // Annoying exception during the first round of the game. We pick but do not place.
-                //     self.phase = Phase::Picking;
-                //     self.advance_turn();
-                //     return;
-                // }
-
-            }
         }
     }
 
@@ -151,8 +166,7 @@ impl Controller {
             self.pick_draft = self.deck.new_draft();
             self.place_draft.apply_new_order(&mut self.players);
 
-            // Enter placing phase and start with the first priority
-            self.phase = Phase::Placing;
+            // Restart Draft with first Priority
             self.current_turn = Prio1;
             return;
         }
