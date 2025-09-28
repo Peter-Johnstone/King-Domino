@@ -71,7 +71,7 @@ impl Grid
     }
 
     // Tell this function a domino and it will generate maps for up, down, left, and right
-    pub(crate) fn build_maps(&mut self, new_domino: Domino) {
+    pub(crate) fn build_maps(&mut self, new_domino: Domino) -> bool {
         let mut rotation = BuildRotation::UP;
         let anchor_type = new_domino.get_tile_type(1);
         let second_type = new_domino.get_tile_type(2);
@@ -92,8 +92,16 @@ impl Grid
             }
             rotation = rotation.next(); //cycle to next rotation of the domino
         }
+
+        //empty the bot_maps vector
+        self.bot_maps.clear();
         self.build_bot_maps(rotation, &new_domino);
-        return;
+
+        //If there are no bot maps, then the player has no room to place any tiles left!
+        if 0 == self.bot_maps.len() {
+            return false
+        }
+        true
                 
     }
 
@@ -269,13 +277,6 @@ impl Grid
         // Pseudocode:
         // self.domino_map.push(GridDomino::new(x, y, id, domino_rotation))
         // Update x,y upper,lower bounds 
-    }
-
-    //Returns true if the player has no room left on their 5x5 grid to place a new tile.
-    //maybe check if build maps cannot build any maps?
-    pub(crate) fn has_no_room_left(&self) -> bool {
-        // TODO: impment. not a "now" problem though. yet.
-        false
     }
 
     fn make_starting_map() -> [[Tile;9];9]{

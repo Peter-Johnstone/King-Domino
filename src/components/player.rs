@@ -21,12 +21,6 @@ impl Player {
         }
     }
     
-
-    pub(crate) fn has_no_room_left(&self) -> bool {
-        self.grid.has_no_room_left()
-    }
-
-
     /// Returns the domino that this player picked last
     pub(crate) fn last_picked(&self) -> Domino {
         self.picked
@@ -55,7 +49,11 @@ impl Player {
     pub(crate) fn domino_placement(&mut self) {
         self.placing = self.picked;
         self.picked = Domino::null(); //update state
-        self.grid.build_maps(self.placing); //TODO: Not totally done yet, need to add logic for second_match()
+        let has_room_left = self.grid.build_maps(self.placing); //builds botmaps and the directional bool maps
+        if !has_room_left {
+            println!("there was no room left for player {}", self.id()); // occurs when the bot_maps vec is of len ==0
+            return;
+        }
         /*
 TODO:
 

@@ -92,12 +92,6 @@ impl Controller {
 
             //will cycle 4 times per turn cycle
             Phase::Placing => {
-                //Last turn skipping
-                if self.players[idx].has_no_room_left() {
-                    print!("GAME OVER for player {}", idx);
-                    self.advance_turn();
-                    return;
-                }
                 let temp_player = self.players.get_mut(self.active_player_id-1);
                 match temp_player {
                     Some(temp_player) => {
