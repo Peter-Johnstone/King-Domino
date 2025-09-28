@@ -7,6 +7,7 @@ pub(crate) enum Types {
     Swamp,
     Water,
     Mine,
+    Castle,
 
     #[default]
     Null,

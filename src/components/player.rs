@@ -1,8 +1,9 @@
 use crate::components::domino::Domino;
 use crate::components::tile::Tile;
 use crate::components::grid::Grid;
+use crate::components::deck::Deck;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub(crate) struct Player {
     id: u8,
     picked: Domino,
@@ -16,13 +17,13 @@ impl Player {
             id,
             picked: Domino::null(),
             placing: Domino::null(),
-            grid: Grid::empty(),
+            grid: Grid::new(),
         }
     }
     
 
-    pub(crate) fn has_placed_all_dominoes(&self) -> bool {
-        self.grid.is_full()
+    pub(crate) fn has_no_room_left(&self) -> bool {
+        self.grid.has_no_room_left()
     }
 
 
@@ -53,11 +54,6 @@ impl Player {
     // TODO: IMPLEMENT/
     pub(crate) fn domino_placement(&self) {
         /*
-
-        X) Display message saysing "press r to rotate, 
-            click to place domino into a socket. A socket
-            represents where the 'anchor tile' will be placed (the one with the hand on it)
-            TLDR the tile with the hand on it will be placed into the green square.
         X) generate list of grids
 
         X) partition list of grids into 4 groups. Each group should contain all valid conformations

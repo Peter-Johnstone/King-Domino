@@ -93,13 +93,20 @@ impl Controller {
             //will cycle 4 times per turn cycle
             Phase::Placing => {
                 //Last turn skipping
-                if self.players[idx].has_placed_all_dominoes() {
+                if self.players[idx].has_no_room_left() {
                     print!("GAME OVER for player {}", idx);
                     self.advance_turn();
                     return;
                 }
-
-                self.players[idx].domino_placement();
+                let temp_player = self.players.get(self.active_player_id-1);
+                match temp_player {
+                    Some(temp_player) => {
+                        temp_player.domino_placement();
+                    }
+                    None => {
+                        eprintln!("Out of bounds error when accessing the players array before domino_placement")
+                    }
+                }
                 
                 self.advance_turn();
                 self.phase = Phase::Picking;
@@ -115,7 +122,6 @@ impl Controller {
                 if let Some(domino) = picked {
                     self.players[idx].update_last_picked(domino);
 
-                    // the current pick draft before we move to the placing phase.
                     //First turn Skipping
                     if self.players[idx].is_not_placing() {
                         // Annoying exception during the first round of the game. We pick but do not place.

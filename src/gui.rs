@@ -53,20 +53,17 @@ mod draft_gui {
     pub(crate) const VERT_OFFSET: f32 = 60.0;
 }
 
-
-
-
-pub(crate) struct Gui {
-
-    assets: Assets,
-
-
+pub(crate) enum rotation {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT,
 }
 
 
-
-
-
+pub(crate) struct Gui {
+    assets: Assets,
+}
 
 impl Gui {
 
