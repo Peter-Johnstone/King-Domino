@@ -16,11 +16,23 @@ mod board_gui {
     pub(crate) const GREEN: Color = Color::from_rgba(50, 176, 92, 255);
     pub(crate) const RED: Color = Color::from_rgba(238, 131, 138, 255);
     pub(crate) const YELLOW: Color = Color::from_rgba(232, 189, 2, 255);
-
     pub(crate) const SCROLL_SIZE: f32 = 75.0;
 }
 
-
+mod text_bank {
+    pub(crate) const PICKING_ADVICE: &str = "
+    Phase: Picking\n
+    Click on a domino to place a king there.\n
+    Active Player:
+    ";
+    pub(crate) const PLACING_ADVICE: &str = "
+    Phase: Placing\n
+    press 'r' to rotate, click to place domino into a socket.\n
+    Available sockets are only shown for the current orientation.\n
+    A socket represents where the TILE WITH THE HAND ON IT will be placed\n
+    Active Player:
+    ";
+}
 
 
 
@@ -62,20 +74,22 @@ impl Gui {
     pub(crate) fn make_containers(&self){
         let color = board_gui::ACCENT_COLOR;
         // Draw container lines
-        draw_line(0.0, screen_height()/2.0, screen_width()/3.0, screen_height()/2.0, 10.0, color);  //hori
+        draw_line(0.0, screen_height()/2.0-100.0, screen_width()/3.0, screen_height()/2.0-100.0, 10.0, color);  //hori
+        draw_line(0.0, screen_height()/2.0+50.0, screen_width()/3.0, screen_height()/2.0+50.0, 10.0, color);  //hori
+
         draw_line(screen_width()/3.0, 0.0, screen_width()/3.0, screen_height(), 10.0, color);       //virt
         // Draw player-pane subdivision lines
         draw_line(screen_width()/3.0, screen_height()/2.0, screen_width(), screen_height()/2.0, 5.0, color);//hori
         draw_line(screen_width()*(2.0/3.0), 0.0, screen_width()*(2.0/3.0), screen_height(), 5.0, color);    //virt
 
         // Draw scrolls
-        self.draw_obj(self.assets.fetch_draft_scroll(), 0.0,(screen_height()/4.0)-50.0);
+        self.draw_obj(self.assets.fetch_draft_scroll(), 0.0,(screen_height()/4.0)-75.0);
         self.draw_obj(self.assets.fetch_score_scroll(), 0.0, (screen_height()*(3.0/4.0))-50.0);
 
         // Draw king icons on score box
         for idx in 1..5 {
             let i: f32 = idx as f32;
-            self.draw_obj(self.assets.fetch_king_texture_by_turn(idx), 100.0, (screen_height()*(3.0/4.0)-225.0+i*75.0));
+            self.draw_obj(self.assets.fetch_king_texture_by_turn(idx), 100.0, (screen_height()*(3.0/4.0)-200.0+i*75.0));
         }
 
         // Draw colored borders within grid panes
@@ -113,9 +127,10 @@ impl Gui {
 
 
     /// The overarching draw function. Called each frame of the game.
-    pub(crate) fn draw(&self, pick_draft: &Draft, place_draft: &Draft) {
+    pub(crate) fn draw(&self, pick_draft: &Draft, place_draft: &Draft, active_player_id: &i32) {
         clear_background(board_gui::BACKGROUND_COLOR);
         self.make_containers();
+        self.add_advice_box(*active_player_id as usize); 
         self.draw_draft(pick_draft, draft_gui::PICK_DOMINO_X);
 
         if !place_draft.is_null() {
@@ -127,7 +142,7 @@ impl Gui {
     /// Returns the y coordinate of the top domino of the draft. Calculated based on screen height and draft size.
     fn top_draft_domino_y() -> f32 {
         // Half screen plus the two dominoes above the halfway point
-        screen_height()/4.0 - (DRAFT_SIZE as f32/2.0) * draft_gui::VERT_OFFSET
+        screen_height()/4.0 - 50.0 - (DRAFT_SIZE as f32/2.0) * draft_gui::VERT_OFFSET
     }
 
     fn draw_draft(&self, draft: &Draft, domino_x: f32) {
@@ -220,6 +235,8 @@ impl Gui {
         draw_line(x_rig_wall, y_top_wall, x_rig_wall, y_bot_wall, 5.0, color);//right
     }
 
-
+    fn add_advice_box(&self, curr_player_id: usize){
+        return
+    }
 
 }

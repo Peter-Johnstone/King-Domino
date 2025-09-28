@@ -22,6 +22,7 @@ pub struct Controller {
     place_draft: Draft,
     deck: Deck,
     players: [Player; 4],
+    active_player_id: i32,
 }
 
 impl Controller {
@@ -48,7 +49,8 @@ impl Controller {
             pick_draft:     draft,
             place_draft:    Draft::null(),
             deck,
-            players
+            players,
+            active_player_id: 0
         }
     }
 
@@ -68,8 +70,8 @@ impl Controller {
 
         while running {
 
-            self.update();
-            self.gui.draw(&self.pick_draft, &self.place_draft);
+            self.update(); 
+            self.gui.draw(&self.pick_draft, &self.place_draft, &self.active_player_id);
             next_frame().await;
 
         }
@@ -80,6 +82,7 @@ impl Controller {
     fn update(&mut self) {
 
         let idx = self.current_turn.idx();
+        self.active_player_id = idx as i32;
         match self.phase {
 
 
