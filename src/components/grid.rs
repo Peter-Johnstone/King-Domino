@@ -33,13 +33,13 @@ pub(crate) struct Grid
 
     // Idea: maybe the maps only contain sockets? Like 1 if exists 0 if not. sockets are buttons overlayed on domino map
     // list of possible tile_maps for up
-    up_map: [[u8; 9]; 9],//Vec<Vec<Vec<Tile>>>,
+    up_map: [[bool; 9]; 9],//Vec<Vec<Vec<Tile>>>,
     // list of possible tile_maps for down
-    down_map: [[u8; 9]; 9],
+    down_map: [[bool; 9]; 9],
     // list of possible tile_maps for left
-    left_map: [[u8; 9]; 9],
+    left_map: [[bool; 9]; 9],
     // list of possible tile_maps for right
-    right_map: [[u8; 9]; 9],
+    right_map: [[bool; 9]; 9],
     //Does not need to be computationally efficient or useful at ALL. Only purpose is for GUI
     domino_map: Vec<GridDomino>,
 
@@ -57,10 +57,10 @@ impl Grid
         Self {
             tile_map: starting_map, //vec![vec![Tile::new(Types::Castle, 0)]],
             bot_maps: Default::default(),
-            up_map: [[0u8; 9]; 9],
-            down_map: [[0u8; 9]; 9],
-            left_map: [[0u8; 9]; 9],
-            right_map: [[0u8; 9]; 9],
+            up_map: [[false; 9]; 9],
+            down_map: [[false; 9]; 9],
+            left_map: [[false; 9]; 9],
+            right_map: [[false; 9]; 9],
             domino_map: vec![GridDomino::new(0,0,99,0.0)],
 
             dm_lower_x: 0,
@@ -86,13 +86,14 @@ impl Grid
                     if curr_type == anchor_type {
                         self.anchor_match(&rotation, i, j); // mutable borrow allowed now
                     } else if curr_type == second_type {
-                        self.second_match(&rotation,i , j);// handle second-type matches
+                        self.second_match(&rotation, i, j);// handle second-type matches
                     }
                 }
             }
-
             rotation = rotation.next(); //cycle to next rotation of the domino
         }
+        self.build_bot_maps(rotation, &new_domino);
+        return;
                 
     }
 
@@ -103,46 +104,46 @@ impl Grid
         match *rotation {
             BuildRotation::UP => { //UP means the tile is "right side up". Rotation = 0
                 if i != 8 && j != 8 && self.tile_map[i][j+1].get_type() == Types::Null && self.tile_map[i+1][j+1].get_type() == Types::Null {
-                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.up_map[i][j+1] = 1}
+                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.up_map[i][j+1] = true}
                 }
                 if i < 7 && self.tile_map[i+1][j].get_type() == Types::Null && self.tile_map[i+2][j].get_type() == Types::Null {
-                    if ((i+2).saturating_sub(self.dm_lower_x)) <= 5 {self.up_map[i+1][j] = 1}
+                    if ((i+2).saturating_sub(self.dm_lower_x)) <= 5 {self.up_map[i+1][j] = true}
                 }
                 if i != 8 && j != 0 && self.tile_map[i][j.saturating_sub(1)].get_type() == Types::Null && self.tile_map[i+1][j.saturating_sub(1)].get_type() == Types::Null {
-                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && (self.dm_upper_y.saturating_sub((j.saturating_sub(1)))) <= 5 {self.up_map[i][j.saturating_sub(1)] = 1}
+                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && (self.dm_upper_y.saturating_sub(j.saturating_sub(1))) <= 5 {self.up_map[i][j.saturating_sub(1)] = true}
                 }
             }
             BuildRotation::DOWN => { //Tile is upside down. Rotation = pi radians
                 if i != 0 && j != 8 && self.tile_map[i][j+1].get_type() == Types::Null && self.tile_map[i.saturating_sub(1)][j+1].get_type() == Types::Null {
-                    if self.dm_upper_x.saturating_sub(((i.saturating_sub(1)))) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.down_map[i][j+1] = 1}
+                    if self.dm_upper_x.saturating_sub(i.saturating_sub(1)) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.down_map[i][j+1] = true}
                 }
                 if i > 1 && self.tile_map[i.saturating_sub(1)][j].get_type() == Types::Null && self.tile_map[i.saturating_sub(2)][j].get_type() == Types::Null {
-                    if self.dm_upper_x.saturating_sub((i.saturating_sub(2))) <= 5 {self.down_map[i.saturating_sub(1)][j] = 1}
+                    if self.dm_upper_x.saturating_sub(i.saturating_sub(2)) <= 5 {self.down_map[i.saturating_sub(1)][j] = true}
                 }
                 if i != 0 && j != 0 && self.tile_map[i][j.saturating_sub(1)].get_type() == Types::Null && self.tile_map[i.saturating_sub(1)][j.saturating_sub(1)].get_type() == Types::Null {
-                    if self.dm_upper_x.saturating_sub(((i.saturating_sub(1)))) <= 5 && (self.dm_upper_y.saturating_sub((j.saturating_sub(1)))) <= 5 {self.down_map[i][j.saturating_sub(1)] = 1}
+                    if self.dm_upper_x.saturating_sub(i.saturating_sub(1)) <= 5 && (self.dm_upper_y.saturating_sub(j.saturating_sub(1))) <= 5 {self.down_map[i][j.saturating_sub(1)] = true}
                 }
             }
             BuildRotation::LEFT => { //Rotation is pi/2 radians
                 if i != 8 && j != 8 && self.tile_map[i+1][j].get_type() == Types::Null && self.tile_map[i+1][j+1].get_type() == Types::Null {
-                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.left_map[i+1][j] = 1}
+                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.left_map[i+1][j] = true}
                 }
                 if j < 7 && self.tile_map[i][j+1].get_type() == Types::Null && self.tile_map[i][j+2].get_type() == Types::Null {
-                    if ((j+2).saturating_sub(self.dm_lower_y)) <= 5 {self.left_map[i][j+1] = 1}
+                    if ((j+2).saturating_sub(self.dm_lower_y)) <= 5 {self.left_map[i][j+1] = true}
                 }
                 if i != 0 && j != 8 && self.tile_map[i.saturating_sub(1)][j].get_type() == Types::Null && self.tile_map[i.saturating_sub(1)][j+1].get_type() == Types::Null {
-                    if self.dm_upper_x.saturating_sub(((i.saturating_sub(1)))) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.left_map[i.saturating_sub(1)][j] = 1}
+                    if self.dm_upper_x.saturating_sub(i.saturating_sub(1)) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.left_map[i.saturating_sub(1)][j] = true}
                 }
             }
             BuildRotation::RIGHT => { //Rotation is 3pi/2 radians
                 if i != 8 && j != 8 && self.tile_map[i+1][j].get_type() == Types::Null && self.tile_map[i+1][j.saturating_sub(1)].get_type() == Types::Null {
-                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && (self.dm_upper_y.saturating_sub((j.saturating_sub(1)))) <= 5 {self.right_map[i+1][j] = 1}
+                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && (self.dm_upper_y.saturating_sub(j.saturating_sub(1))) <= 5 {self.right_map[i+1][j] = true}
                 }
                 if j > 1 && self.tile_map[i][j.saturating_sub(1)].get_type() == Types::Null && self.tile_map[i][j.saturating_sub(2)].get_type() == Types::Null {
-                    if (self.dm_lower_y.saturating_sub((j.saturating_sub(2)))) <= 5 {self.right_map[i][j.saturating_sub(1)] = 1}
+                    if (self.dm_lower_y.saturating_sub(j.saturating_sub(2))) <= 5 {self.right_map[i][j.saturating_sub(1)] = true}
                 }
                 if i != 0 && j != 0 && self.tile_map[i.saturating_sub(1)][j].get_type() == Types::Null && self.tile_map[i.saturating_sub(1)][j.saturating_sub(1)].get_type() == Types::Null {
-                    if self.dm_upper_x.saturating_sub(((i.saturating_sub(1)))) <= 5 && (self.dm_upper_y.saturating_sub((j.saturating_sub(1)))) <= 5 {self.right_map[i.saturating_sub(1)][j] = 1}
+                    if self.dm_upper_x.saturating_sub(i.saturating_sub(1)) <= 5 && (self.dm_upper_y.saturating_sub(j.saturating_sub(1))) <= 5 {self.right_map[i.saturating_sub(1)][j] = true}
                 }
             }
         }
@@ -153,32 +154,112 @@ impl Grid
     fn second_match (&mut self, rotation: &BuildRotation, i: usize, j: usize){
         match *rotation {
             BuildRotation::UP => {
-
+                if i != 0 && j != 8 && self.tile_map[i][j+1].get_type() == Types::Null && self.tile_map[i.saturating_sub(1)][j+1].get_type() == Types::Null {
+                    if self.dm_upper_x.saturating_sub(i.saturating_sub(1)) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.up_map[i][j+1] = true}
+                }
+                if i > 1 && self.tile_map[i.saturating_sub(1)][j].get_type() == Types::Null && self.tile_map[i.saturating_sub(2)][j].get_type() == Types::Null {
+                    if self.dm_upper_x.saturating_sub(i.saturating_sub(2)) <= 5 {self.up_map[i.saturating_sub(1)][j] = true}
+                }
+                if i != 0 && j != 0 && self.tile_map[i][j.saturating_sub(1)].get_type() == Types::Null && self.tile_map[i.saturating_sub(1)][j.saturating_sub(1)].get_type() == Types::Null {
+                    if self.dm_upper_x.saturating_sub(i.saturating_sub(1)) <= 5 && (self.dm_upper_y.saturating_sub(j.saturating_sub(1))) <= 5 {self.up_map[i][j.saturating_sub(1)] = true}
+                }
             }
             BuildRotation::DOWN => {
-
+                if i != 8 && j != 8 && self.tile_map[i][j+1].get_type() == Types::Null && self.tile_map[i+1][j+1].get_type() == Types::Null {
+                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.down_map[i][j+1] = true}
+                }
+                if i < 7 && self.tile_map[i+1][j].get_type() == Types::Null && self.tile_map[i+2][j].get_type() == Types::Null {
+                    if ((i+2).saturating_sub(self.dm_lower_x)) <= 5 {self.down_map[i+1][j] = true}
+                }
+                if i != 8 && j != 0 && self.tile_map[i][j.saturating_sub(1)].get_type() == Types::Null && self.tile_map[i+1][j.saturating_sub(1)].get_type() == Types::Null {
+                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && (self.dm_upper_y.saturating_sub(j.saturating_sub(1))) <= 5 {self.down_map[i][j.saturating_sub(1)] = true}
+                }
             }
             BuildRotation::LEFT => {
-
+                if i != 8 && j != 8 && self.tile_map[i+1][j].get_type() == Types::Null && self.tile_map[i+1][j.saturating_sub(1)].get_type() == Types::Null {
+                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && (self.dm_upper_y.saturating_sub(j.saturating_sub(1))) <= 5 {self.left_map[i+1][j] = true}
+                }
+                if j > 1 && self.tile_map[i][j.saturating_sub(1)].get_type() == Types::Null && self.tile_map[i][j.saturating_sub(2)].get_type() == Types::Null {
+                    if (self.dm_lower_y.saturating_sub(j.saturating_sub(2))) <= 5 {self.left_map[i][j.saturating_sub(1)] = true}
+                }
+                if i != 0 && j != 0 && self.tile_map[i.saturating_sub(1)][j].get_type() == Types::Null && self.tile_map[i.saturating_sub(1)][j.saturating_sub(1)].get_type() == Types::Null {
+                    if self.dm_upper_x.saturating_sub(i.saturating_sub(1)) <= 5 && (self.dm_upper_y.saturating_sub(j.saturating_sub(1))) <= 5 {self.left_map[i.saturating_sub(1)][j] = true}
+                }
             }
             BuildRotation::RIGHT => {
-
+                if i != 8 && j != 8 && self.tile_map[i+1][j].get_type() == Types::Null && self.tile_map[i+1][j+1].get_type() == Types::Null {
+                    if ((i+1).saturating_sub(self.dm_lower_x)) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.right_map[i+1][j] = true}
+                }
+                if j < 7 && self.tile_map[i][j+1].get_type() == Types::Null && self.tile_map[i][j+2].get_type() == Types::Null {
+                    if ((j+2).saturating_sub(self.dm_lower_y)) <= 5 {self.right_map[i][j+1] = true}
+                }
+                if i != 0 && j != 8 && self.tile_map[i.saturating_sub(1)][j].get_type() == Types::Null && self.tile_map[i.saturating_sub(1)][j+1].get_type() == Types::Null {
+                    if self.dm_upper_x.saturating_sub(i.saturating_sub(1)) <= 5 && ((j+1).saturating_sub(self.dm_lower_y)) <= 5 {self.right_map[i.saturating_sub(1)][j] = true}
+                }
             }
         }
     }
 
+    // Builds a new tile map for each socket on each up_map, down_map, left_map, right_map
+    // This function is what builds self.bot_maps: Vec<[[Tile;9];9]>
+    fn build_bot_maps(&mut self, mut rotation: BuildRotation, new_domino: &Domino){
+        //first make a temp 9x9 array with the merged results for each other map
+        let anchor_tile = new_domino.get_tile(1);
+        let second_tile = new_domino.get_tile(2);
+        for _ in 0..4 {
+            for i in 0..self.tile_map.len() {
+                for j in 0..self.tile_map[0].len() {
+                    let mut temp_map: [[Tile;9];9] = self.tile_map.clone();
+                    match rotation {
+                        BuildRotation::UP => { 
+                            if self.up_map[i][j] {
+                                temp_map[i][j] = anchor_tile;
+                                temp_map[i+1][j] = second_tile;
+                            }
+                        }
+                        BuildRotation::DOWN => { 
+                            if self.down_map[i][j] {
+                                temp_map[i][j] = anchor_tile;
+                                temp_map[i-1][j] = second_tile;
+                            }
+                        }
+                        BuildRotation::LEFT => { 
+                            if self.left_map[i][j] {
+                                temp_map[i][j] = anchor_tile;
+                                temp_map[i][j+1] = second_tile;
+                            }
+                        }
+                        BuildRotation::RIGHT => {
+                            if self.right_map[i][j] {
+                                temp_map[i][j] = anchor_tile;
+                                temp_map[i][j-1] = second_tile;
+                            }
+                        }
+                    }
+                    self.bot_maps.push(temp_map);
+                }
+            }
+            rotation = rotation.next();
+        }
+    }
+
     //These ought 4 fns to be called upon by the gui
-    pub(crate) fn get_up_map(&self) -> &[[u8; 9]; 9] {
+    pub(crate) fn get_up_map(&self) -> &[[bool; 9]; 9] {
         &self.up_map
     }
-    pub(crate) fn get_down_map(&self) -> &[[u8; 9]; 9] {
+    pub(crate) fn get_down_map(&self) -> &[[bool; 9]; 9] {
         &self.down_map
     }
-    pub(crate) fn get_left_map(&self) -> &[[u8; 9]; 9] {
+    pub(crate) fn get_left_map(&self) -> &[[bool; 9]; 9] {
         &self.left_map
     }
-    pub(crate) fn get_right_map(&self) -> &[[u8; 9]; 9] {
+    pub(crate) fn get_right_map(&self) -> &[[bool; 9]; 9] {
         &self.right_map
+    }
+
+    //Get the bot maps
+    pub(crate) fn get_bot_maps(&self) -> &Vec<[[Tile; 9]; 9]> {
+        &self.bot_maps
     }
 
     //User clicks a socket. This should be called by the gui
