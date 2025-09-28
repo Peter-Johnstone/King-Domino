@@ -146,6 +146,7 @@ impl Grid
         }
     }
     
+    // This logic is quite complex. Lets see if I can manage not to mess it up
     fn second_match (&mut self, rotation: &BuildRotation, i: usize, j: usize){
         match *rotation {
             BuildRotation::UP => {
