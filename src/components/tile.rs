@@ -28,4 +28,7 @@ impl Tile {
             crowns,
         }
     }
+    pub(crate) fn get_type(&self) -> Types {
+        self.tile_type
+    }
 }
