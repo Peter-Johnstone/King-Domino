@@ -228,7 +228,7 @@ impl Grid
                         BuildRotation::DOWN => { 
                             if self.down_map[i][j] {
                                 temp_map[i][j] = anchor_tile;
-                                temp_map[i-1][j] = second_tile;
+                                temp_map[i.saturating_sub(1)][j] = second_tile;
                             }
                         }
                         BuildRotation::LEFT => { 
@@ -240,7 +240,7 @@ impl Grid
                         BuildRotation::RIGHT => {
                             if self.right_map[i][j] {
                                 temp_map[i][j] = anchor_tile;
-                                temp_map[i][j-1] = second_tile;
+                                temp_map[i][j.saturating_sub(1)] = second_tile;
                             }
                         }
                     }
