@@ -98,7 +98,7 @@ impl Controller {
                     self.advance_turn();
                     return;
                 }
-                let temp_player = self.players.get(self.active_player_id-1);
+                let temp_player = self.players.get_mut(self.active_player_id-1);
                 match temp_player {
                     Some(temp_player) => {
                         temp_player.domino_placement();

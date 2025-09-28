@@ -52,16 +52,21 @@ impl Player {
     }
 
     // TODO: IMPLEMENT/
-    pub(crate) fn domino_placement(&self) {
+    pub(crate) fn domino_placement(&mut self) {
+        self.placing = self.picked;
+        self.picked = Domino::null(); //update state
+        self.grid.build_maps(self.placing); //TODO: Not totally done yet, need to add logic for second_match()
         /*
-        X) generate list of grids
+TODO:
 
-        X) partition list of grids into 4 groups. Each group should contain all valid conformations
-            for one orientation
         --GUI--
-        X) Draw hand
+        X) Undraw king from self.picked texture
+        X) Draw hand on .picked anchor tile (the left tile of the domino)
+        X) Have self.picked texture + hand texture follow cursor
         X) starting with UP, gui should display all sockets valid for that group, cycling to the next group
             when 'r' is pressed
+        X) Gui needs to detect a click when each socket is pressed, sends socket and rotation back here.
+        X) self.grid.position_selected(&mut self, self.picking.id(), x, y, rotation in radians)
         X) self.placing = Domino::null()
         X) undraw picked domino
         X) Undraw hand

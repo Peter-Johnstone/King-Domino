@@ -1,8 +1,7 @@
 use crate::components::domino::Domino;
-use crate::components::tile;
 use crate::components::tile::Tile;
 use crate::components::tile::Types;
-use crate::components::grid_domino::Grid_domino;
+use crate::components::grid_domino::GridDomino;
 use crate::gui::rotation;
 
 pub enum BuildRotation{
@@ -42,7 +41,7 @@ pub(crate) struct Grid
     // list of possible tile_maps for right
     right_map: [[u8; 5]; 5],
     //Does not need to be computationally efficient or useful at ALL. Only purpose is for GUI
-    domino_map: Vec<Grid_domino>,
+    domino_map: Vec<GridDomino>,
 
     // Bounds used for centering the domino_grid for the gui. dm = Domino Map
     dm_lower_x: usize,
@@ -62,7 +61,7 @@ impl Grid
             down_map: [[0u8; 5]; 5],
             left_map: [[0u8; 5]; 5],
             right_map: [[0u8; 5]; 5],
-            domino_map: vec![Grid_domino::new(0,0,99,0.0)],
+            domino_map: vec![GridDomino::new(0,0,99,0.0)],
 
             dm_lower_x: 0,
             dm_upper_x: 0,
@@ -147,6 +146,7 @@ impl Grid
     }
     
     // This logic is quite complex. Lets see if I can manage not to mess it up
+    // TODO: Add the logic for this. I think can do this quite quickly tomorrow
     fn second_match (&mut self, rotation: &BuildRotation, i: usize, j: usize){
         match *rotation {
             BuildRotation::UP => {
@@ -164,6 +164,7 @@ impl Grid
         }
     }
 
+    //These ought 4 fns to be called upon by the gui
     pub(crate) fn get_up_map(&self) -> &[[u8; 5]; 5] {
         &self.up_map
     }
@@ -178,11 +179,11 @@ impl Grid
     }
 
     //User clicks a socket. This should be called by the gui
-    pub(crate) fn position_selected(&self, domino_rotation: rotation, socket_id: usize){
+    pub(crate) fn position_selected(&self, x: u8, y: u8, id: usize, domino_rotation: f32){
         // TODO: Implement
 
         // Pseudocode:
-        // Convert Domino to tiles
+        // self.domino_map.push(GridDomino::new(x, y, id, domino_rotation))
         // Update x,y upper,lower bounds 
     }
 
