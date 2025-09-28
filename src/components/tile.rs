@@ -7,6 +7,7 @@ pub(crate) enum Types {
     Swamp,
     Water,
     Mine,
+    Castle,
 
     #[default]
     Null,
@@ -26,5 +27,8 @@ impl Tile {
             tile_type,
             crowns,
         }
+    }
+    pub(crate) fn get_type(&self) -> Types {
+        self.tile_type
     }
 }

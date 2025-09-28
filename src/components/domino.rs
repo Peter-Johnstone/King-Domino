@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use crate::components::tile::Tile;
+use crate::components::tile::Types;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Domino
@@ -55,6 +56,16 @@ impl Domino
 
     /// Grabs the id of the domino
     pub(crate) fn id(&self) -> u8 { self.id }
+
+
+    // takes id (1 or 2) and returns the tile type of tile1 or tile2 respectivly
+    pub(crate) fn get_tile_type(&self, id: usize) -> Types{
+        match id {
+            1 => {self.tile1.get_type()}
+            2 => {self.tile2.get_type()}
+            _ => {panic!("Invalid id passed to get_tile_type: expected 1 or 2, got {}", id)}
+        }
+    }
     
 
 }

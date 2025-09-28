@@ -9,6 +9,8 @@ pub(crate) struct Assets {
     // dictionary with u8 key between 0-47 representing the
     domino_by_id:   HashMap<u8, Texture2D>,
     king_by_turn: HashMap<u8, Texture2D>,
+    draft_scroll: Texture2D,
+    score_scroll: Texture2D
 }
 
 
@@ -21,10 +23,14 @@ impl Assets {
 
         let king_by_turn = Self::load_king_textures().await;
         let domino_by_id = Self::load_domino_textures().await;
+        let draft_scroll = Self::load_scroll_draft_textures().await;
+        let score_scroll = Self::load_scroll_score_textures().await;
 
         Self {
             king_by_turn,
-            domino_by_id
+            domino_by_id,
+            draft_scroll,
+            score_scroll
         }
     }
 
@@ -75,5 +81,21 @@ impl Assets {
         self.domino_by_id.get(&id)
     }
 
+    // Loads the textures for the draft scroll (just for cosmetics)
+    async fn load_scroll_draft_textures() -> Texture2D {
+        let path = format!("res/img/scroll_draft.png");
+        let texture = load_texture(&path).await.unwrap();
+        texture.set_filter(FilterMode::Nearest);
+        texture
+    }
+    // Loads the textures for the score scroll (just for cosmetics)
+    async fn load_scroll_score_textures() -> Texture2D {
+        let path = format!("res/img/scroll_score.png");
+        let texture = load_texture(&path).await.unwrap();
+        texture.set_filter(FilterMode::Nearest);
+        texture
+    }
 
+    pub(crate) fn fetch_score_scroll(&self) -> Option<&Texture2D>{Some(&self.score_scroll)}
+    pub(crate) fn fetch_draft_scroll(&self) -> Option<&Texture2D>{Some(&self.draft_scroll)}
 }
