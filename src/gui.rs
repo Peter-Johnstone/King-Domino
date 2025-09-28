@@ -3,9 +3,12 @@ use macroquad::color::WHITE;
 use macroquad::input::{is_mouse_button_pressed, MouseButton};
 use macroquad::prelude::*;
 use crate::assets::Assets;
+use crate::controller::Phase;
 use crate::components::domino::Domino;
 use crate::components::draft::{Draft, DRAFT_SIZE};
 use crate::components::player::Player;
+use crate::gui::board_gui::SCROLL_SIZE;
+use crate::gui::text_bank::{PICKING_ADVICE, PLACING_ADVICE};
 
 mod board_gui {
     use macroquad::prelude::Color;
@@ -17,6 +20,7 @@ mod board_gui {
     pub(crate) const RED: Color = Color::from_rgba(238, 131, 138, 255);
     pub(crate) const YELLOW: Color = Color::from_rgba(232, 189, 2, 255);
     pub(crate) const SCROLL_SIZE: f32 = 75.0;
+    pub(crate) const SCORE_KING_SIZE: f32 = 75.0;
 }
 
 mod text_bank {
@@ -27,9 +31,11 @@ mod text_bank {
     ";
     pub(crate) const PLACING_ADVICE: &str = "
     Phase: Placing\n
-    press 'r' to rotate, click to place domino into a socket.\n
-    Available sockets are only shown for the current orientation.\n
-    A socket represents where the TILE WITH THE HAND ON IT will be placed\n
+    press 'r' to rotate, click to place\n
+    domino into a socket. Available sockets\n
+    are only shown for the current orientation.\n
+    A socket represents where the TILE WITH\n
+    THE HAND ON IT will be placed\n
     Active Player:
     ";
 }
@@ -83,13 +89,13 @@ impl Gui {
         draw_line(screen_width()*(2.0/3.0), 0.0, screen_width()*(2.0/3.0), screen_height(), 5.0, color);    //virt
 
         // Draw scrolls
-        self.draw_obj(self.assets.fetch_draft_scroll(), 0.0,(screen_height()/4.0)-75.0);
-        self.draw_obj(self.assets.fetch_score_scroll(), 0.0, (screen_height()*(3.0/4.0))-50.0);
+        self.draw_obj(self.assets.fetch_draft_scroll(), 0.0,(screen_height()/4.0)-75.0, board_gui::SCROLL_SIZE);
+        self.draw_obj(self.assets.fetch_score_scroll(), 0.0, (screen_height()*(3.0/4.0))-50.0, board_gui::SCROLL_SIZE);
 
         // Draw king icons on score box
         for idx in 1..5 {
             let i: f32 = idx as f32;
-            self.draw_obj(self.assets.fetch_king_texture_by_turn(idx), 100.0, (screen_height()*(3.0/4.0)-200.0+i*75.0));
+            self.draw_obj(self.assets.fetch_king_texture_by_turn(idx), 100.0, (screen_height()*(3.0/4.0)-200.0+i*75.0), board_gui::SCORE_KING_SIZE);
         }
 
         // Draw colored borders within grid panes
@@ -127,10 +133,10 @@ impl Gui {
 
 
     /// The overarching draw function. Called each frame of the game.
-    pub(crate) fn draw(&self, pick_draft: &Draft, place_draft: &Draft, active_player_id: &i32) {
+    pub(crate) fn draw(&self, pick_draft: &Draft, place_draft: &Draft, active_player_id: &usize, phase: &Phase) {
         clear_background(board_gui::BACKGROUND_COLOR);
         self.make_containers();
-        self.add_advice_box(*active_player_id as usize); 
+        self.add_advice_box(*active_player_id, phase); 
         self.draw_draft(pick_draft, draft_gui::PICK_DOMINO_X);
 
         if !place_draft.is_null() {
@@ -209,17 +215,18 @@ impl Gui {
     }
 
     // Draws a scroll on the screen
-    fn draw_obj(&self, texture: Option<&Texture2D>, x: f32, y: f32){
+    fn draw_obj(&self, texture: Option<&Texture2D>, x: f32, y: f32, size: f32){
         debug_assert_ne!(texture, None);
         let texture = texture.unwrap(); // extract from Some(texture) -> texture
         draw_texture_ex(texture, x, y, WHITE, DrawTextureParams {
-            dest_size: Some(Vec2::new(board_gui::SCROLL_SIZE, board_gui::SCROLL_SIZE)),
+            dest_size: Some(Vec2::new(size, size)),
             ..Default::default()
         }, );
     }
 
     // Draws a border around each pane
     fn draw_color_border(&self, color: Color, x: f32, y: f32){
+        //math stuff
         let mut x_offset: f32 = screen_width()*(2.0/3.0);
         let mut y_offset: f32 = screen_height()/2.0;
         x_offset = x_offset + x*screen_width()/6.0;
@@ -229,14 +236,30 @@ impl Gui {
         let y_top_wall = y_offset - screen_height()/4.0 + 5.0;
         let y_bot_wall = y_offset + screen_height()/4.0 - 5.0;
 
+        //macroquad fn call
         draw_line(x_lef_wall, y_top_wall, x_rig_wall, y_top_wall, 5.0, color);//top
         draw_line(x_lef_wall, y_bot_wall, x_rig_wall, y_bot_wall, 5.0, color);//bottom
         draw_line(x_lef_wall, y_top_wall, x_lef_wall, y_bot_wall, 5.0, color);//left
         draw_line(x_rig_wall, y_top_wall, x_rig_wall, y_bot_wall, 5.0, color);//right
     }
 
-    fn add_advice_box(&self, curr_player_id: usize){
-        return
+    // Adds the advice text and active king sprite to the box on the left hand side and halfway down screen
+    fn add_advice_box(&self, idx: usize, phase: &Phase){
+        //Gets the right text based on game phase
+        let mut curr_advice: String;
+        match phase {
+            Phase::Placing => {
+                curr_advice = String::from(PLACING_ADVICE);
+            }
+            &Phase::Picking => {
+                curr_advice = String::from(PICKING_ADVICE);
+            }
+        }
+        //Draw text
+        draw_multiline_text(&curr_advice, -10.0, screen_height()/2.0 - 75.0, 20.0, Some(0.3), WHITE);
+        
+        //Draw king of active player
+        self.draw_obj(self.assets.fetch_king_texture_by_turn(idx as u8), screen_width()/3.0-50.0, screen_height()/2.0, 30.0);
     }
 
 }

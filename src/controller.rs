@@ -8,7 +8,7 @@ use crate::components::player::Player;
 use crate::components::turn::Turn::{Prio1};
 
 
-enum Phase {
+pub enum Phase {
     Picking,
     Placing
 }
@@ -22,7 +22,7 @@ pub struct Controller {
     place_draft: Draft,
     deck: Deck,
     players: [Player; 4],
-    active_player_id: i32,
+    active_player_id: usize,
 }
 
 impl Controller {
@@ -71,7 +71,7 @@ impl Controller {
         while running {
 
             self.update(); 
-            self.gui.draw(&self.pick_draft, &self.place_draft, &self.active_player_id);
+            self.gui.draw(&self.pick_draft, &self.place_draft, &self.active_player_id, &self.phase);
             next_frame().await;
 
         }
@@ -81,21 +81,18 @@ impl Controller {
 
     fn update(&mut self) {
 
+
         let idx = self.current_turn.idx();
-        self.active_player_id = idx as i32;
+
+        // Active player is the player at the current priority in the (possibly re-ordered) players array.
+        self.active_player_id = self.players[idx].id() as usize;
+
         match self.phase {
 
 
             //will cycle 4 times per turn cycle
             Phase::Placing => {
-                //First turn Skipping
-                if self.players[idx].is_not_placing() {
-                    // Annoying exception during the first round of the game. We pick but do not place.
-                    self.phase = Phase::Picking;
-                    self.advance_turn();
-                    return;
-                }
-                //Laster turn skipping
+                //Last turn skipping
                 if self.players[idx].has_placed_all_dominoes() {
                     print!("GAME OVER for player {}", idx);
                     self.advance_turn();
@@ -119,9 +116,14 @@ impl Controller {
                     self.players[idx].update_last_picked(domino);
 
                     // the current pick draft before we move to the placing phase.
-                    self.phase = Phase::Placing;
-                    
-                    //print!("Player {} picked domino {}\n", idx+1, domino.id());
+                    //First turn Skipping
+                    if self.players[idx].is_not_placing() {
+                        // Annoying exception during the first round of the game. We pick but do not place.
+                        self.advance_turn();
+                        return;
+                    } else {
+                        self.phase = Phase::Placing;
+                    }
                 }
             }
 
