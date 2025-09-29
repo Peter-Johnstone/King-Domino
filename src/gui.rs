@@ -1,4 +1,4 @@
-use std::any::Any;
+use std::f64::consts::PI;
 use macroquad::color::WHITE;
 use macroquad::input::{is_mouse_button_pressed, MouseButton};
 use macroquad::prelude::*;
@@ -7,7 +7,6 @@ use crate::controller::Phase;
 use crate::components::domino::Domino;
 use crate::components::draft::{Draft, DRAFT_SIZE};
 use crate::components::player::Player;
-use crate::gui::board_gui::SCROLL_SIZE;
 use crate::gui::text_bank::{PICKING_ADVICE, PLACING_ADVICE};
 
 mod board_gui {
@@ -40,7 +39,22 @@ mod text_bank {
     ";
 }
 
-
+enum PlacementDominoRotation {
+    UP,
+    LEFT,
+    DOWN,
+    RIGHT
+}
+impl PlacementDominoRotation{
+    fn next(&self) -> Self {
+        match *self {
+            PlacementDominoRotation::UP => PlacementDominoRotation::LEFT,
+            PlacementDominoRotation::LEFT => PlacementDominoRotation::DOWN,
+            PlacementDominoRotation::DOWN => PlacementDominoRotation::RIGHT,
+            PlacementDominoRotation::RIGHT => PlacementDominoRotation::UP,
+        }
+    }
+}
 
 /// Holds the constants related to the display of the draft
 mod draft_gui {
@@ -53,16 +67,9 @@ mod draft_gui {
     pub(crate) const VERT_OFFSET: f32 = 60.0;
 }
 
-pub(crate) enum rotation {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT,
-}
-
-
 pub(crate) struct Gui {
     assets: Assets,
+    domino_rotation: PlacementDominoRotation,
 }
 
 impl Gui {
@@ -70,6 +77,7 @@ impl Gui {
     pub(crate) async fn new() -> Self {
         Self {
             assets: Assets::load().await,
+            domino_rotation: PlacementDominoRotation::UP,
         }
     }
 
@@ -92,7 +100,7 @@ impl Gui {
         // Draw king icons on score box
         for idx in 1..5 {
             let i: f32 = idx as f32;
-            self.draw_obj(self.assets.fetch_king_texture_by_turn(idx), 100.0, (screen_height()*(3.0/4.0)-200.0+i*75.0), board_gui::SCORE_KING_SIZE);
+            self.draw_obj(self.assets.fetch_king_texture_by_turn(idx), 100.0, screen_height()*(3.0/4.0)-200.0+i*75.0, board_gui::SCORE_KING_SIZE);
         }
 
         // Draw colored borders within grid panes
@@ -101,6 +109,14 @@ impl Gui {
         self.draw_color_border(board_gui::RED,    -1.0,  1.0);
         self.draw_color_border(board_gui::YELLOW,  1.0,  1.0);
 
+    }
+
+    // Detects if R key is pressed and rotates the domino if so (only called during placement phase)
+    pub(crate) fn check_r_key_pressed(&self) {
+        if is_key_down(KeyCode::R) {
+            self.domino_rotation.next();
+            return;
+        }
     }
 
     /// Returns the domino if we clicked a domino in the draft
@@ -130,14 +146,24 @@ impl Gui {
 
 
     /// The overarching draw function. Called each frame of the game.
-    pub(crate) fn draw(&self, pick_draft: &Draft, place_draft: &Draft, active_player_id: &usize, phase: &Phase) {
+    pub(crate) fn draw(&self, pick_draft: &Draft, place_draft: &Draft, active_player_id: &usize, phase: &Phase, player_list: &[Player; 4]) {
+        let mut valid_draft_doms: [bool;4] = [true;4];
         clear_background(board_gui::BACKGROUND_COLOR);
         self.make_containers();
         self.add_advice_box(*active_player_id, phase); 
-        self.draw_draft(pick_draft, draft_gui::PICK_DOMINO_X);
+        self.draw_draft(pick_draft, draft_gui::PICK_DOMINO_X, valid_draft_doms); // unsure if valid_draft_doms should always be true for this line. If you get a weird error where the unpicked doms are not showing up, this line is the issue
+
+        
+        match phase {
+            Phase::Placing => {
+                valid_draft_doms = self.undraw_old_doms(*active_player_id, player_list);
+                self.draw_placing_textures_if_placing(*active_player_id, player_list);
+            }
+            Phase::Picking => {}
+        }
 
         if !place_draft.is_null() {
-            self.draw_draft(place_draft, draft_gui::PLACE_DOMINO_X);
+            self.draw_draft(place_draft, draft_gui::PLACE_DOMINO_X, valid_draft_doms); //Written by Peter
 
         }
     }
@@ -148,7 +174,7 @@ impl Gui {
         screen_height()/4.0 - 50.0 - (DRAFT_SIZE as f32/2.0) * draft_gui::VERT_OFFSET
     }
 
-    fn draw_draft(&self, draft: &Draft, domino_x: f32) {
+    fn draw_draft(&self, draft: &Draft, domino_x: f32, valid_doms: [bool;4]) { //Written by Peter
 
         if draft.is_null() {
             return;
@@ -157,20 +183,18 @@ impl Gui {
         let top_domino_y = Self::top_draft_domino_y();
 
         for (i, domino) in draft.iter().enumerate() {
+            if valid_doms[i]{
+                self.draw_domino(domino, draft_gui::DOMINO_TILE_SIZE,
+                                domino_x,
+                                top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
 
-            self.draw_domino(domino, draft_gui::DOMINO_TILE_SIZE,
-                             domino_x,
-                             top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
-
-            if let Some(id) = draft.player_on(i) {
-                self.draw_king_on_domino(id as usize,
-                                         domino_x,
-                                         top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
-            }
-
-
+                if let Some(id) = draft.player_on(i) {
+                    self.draw_king_on_domino(id as usize,
+                                            domino_x,
+                                            top_domino_y + (i as f32 * draft_gui::VERT_OFFSET));
+                }
+            }   
         }
-
     }
 
 
@@ -241,14 +265,14 @@ impl Gui {
     }
 
     // Adds the advice text and active king sprite to the box on the left hand side and halfway down screen
-    fn add_advice_box(&self, idx: usize, phase: &Phase){
+    fn add_advice_box(&self, active_player_id: usize, phase: &Phase){
         //Gets the right text based on game phase
-        let mut curr_advice: String;
+        let curr_advice: String;
         match phase {
             Phase::Placing => {
                 curr_advice = String::from(PLACING_ADVICE);
             }
-            &Phase::Picking => {
+            &Phase::Picking => { // I have no idea why this a reference and the other is not but I dont want to touch it
                 curr_advice = String::from(PICKING_ADVICE);
             }
         }
@@ -256,7 +280,56 @@ impl Gui {
         draw_multiline_text(&curr_advice, -10.0, screen_height()/2.0 - 75.0, 20.0, Some(0.3), WHITE);
         
         //Draw king of active player
-        self.draw_obj(self.assets.fetch_king_texture_by_turn(idx as u8), screen_width()/3.0-50.0, screen_height()/2.0, 30.0);
+        self.draw_obj(self.assets.fetch_king_texture_by_turn(active_player_id as u8), screen_width()/3.0-50.0, screen_height()/2.0, 30.0);
+    }
+
+    fn undraw_old_doms(&self, active_player_id: usize, player_list: &[Player; 4]) -> [bool;4]  {
+        let mut some_curr_player = player_list.get(active_player_id);
+        match some_curr_player {
+            Some(curr_player) => {
+                let id = curr_player.picked().id();
+                let mut valid_dominos: [bool;4] = [true;4];
+                for i in 0..id {
+                    valid_dominos[i as usize] = false;
+                }
+                valid_dominos
+            }
+            None => {panic!("draw_placing_textures_if_placing() wants some attention");}
+        }
+    }
+
+    fn draw_placing_textures_if_placing(&self, active_player_id: usize, player_list: &[Player; 4]){
+        
+        // get cursor coords
+        let (mouse_x, mouse_y) = mouse_position();
+        // get rotation in radians
+        let rotation: f64;
+        match self.domino_rotation {
+            PlacementDominoRotation::UP => {rotation = 0.0;}
+            PlacementDominoRotation::LEFT => {rotation = PI/2.0;}
+            PlacementDominoRotation::DOWN => {rotation = PI;}
+            PlacementDominoRotation::RIGHT => {rotation = PI*(3.0/2.0);}
+        }
+        // then draw domino, based on rotation enum. (Pressing 'r' cycles through the enum)
+        let mut x_offset: f32 = 0.0; //TODO: once picking logic is done, fine tune offsets
+        let mut y_offset: f32 = 0.0; //TODO: once picking logic is done, fine tune offsets
+        let mut some_curr_player = player_list.get(active_player_id);
+        match some_curr_player {
+            Some(curr_player) => {
+                self.draw_obj(self.assets.fetch_domino_texture_by_id(curr_player.picked().id()), mouse_x + x_offset, mouse_y + y_offset, 30.0);
+            }
+            None => {panic!("draw_placing_textures_if_placing() wants some attention");}
+        }
+        
+        // then draw hand
+        x_offset = 0.0; //TODO: once picking logic is done, fine tune offsets
+        y_offset = 0.0; //TODO: once picking logic is done, fine tune offsets
+        self.draw_obj(self.assets.fetch_hand(), mouse_x + x_offset, mouse_y + y_offset, 30.0);
+
+        return;
+        
+        
+        
     }
 
 }

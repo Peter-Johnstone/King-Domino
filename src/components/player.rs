@@ -45,6 +45,8 @@ impl Player {
 
     }
 
+    pub(crate) fn picked(&self)->Domino{self.picked}
+
     // TODO: IMPLEMENT/
     pub(crate) fn domino_placement(&mut self) {
         self.placing = self.picked;
@@ -58,11 +60,7 @@ impl Player {
 TODO:
 
         --GUI--
-        X) Undraw king from self.picked texture
-        X) Draw hand on .picked anchor tile (the left tile of the domino)
-        X) Have self.picked texture + hand texture follow cursor
-        X) starting with UP, gui should display all sockets valid for that group, cycling to the next group
-            when 'r' is pressed
+        X) gui should display all sockets valid for self.domino_rotation
         X) Gui needs to detect a click when each socket is pressed, sends socket and rotation back here.
         X) self.grid.position_selected(&mut self, self.picking.id(), x, y, rotation in radians)
         X) self.placing = Domino::null()

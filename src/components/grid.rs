@@ -2,7 +2,6 @@ use crate::components::domino::Domino;
 use crate::components::tile::Tile;
 use crate::components::tile::Types;
 use crate::components::grid_domino::GridDomino;
-use crate::gui::rotation;
 
 pub enum BuildRotation{
     UP,

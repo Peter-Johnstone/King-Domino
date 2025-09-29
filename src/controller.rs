@@ -71,7 +71,7 @@ impl Controller {
         while running {
 
             self.update(); 
-            self.gui.draw(&self.pick_draft, &self.place_draft, &self.active_player_id, &self.phase);
+            self.gui.draw(&self.pick_draft, &self.place_draft, &self.active_player_id, &self.phase, &self.players);
             next_frame().await;
 
         }
@@ -92,6 +92,7 @@ impl Controller {
 
             //will cycle 4 times per turn cycle
             Phase::Placing => {
+                self.gui.check_r_key_pressed();
                 let temp_player = self.players.get_mut(self.active_player_id-1);
                 match temp_player {
                     Some(temp_player) => {

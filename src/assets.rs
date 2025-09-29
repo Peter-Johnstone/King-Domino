@@ -10,7 +10,9 @@ pub(crate) struct Assets {
     domino_by_id:   HashMap<u8, Texture2D>,
     king_by_turn: HashMap<u8, Texture2D>,
     draft_scroll: Texture2D,
-    score_scroll: Texture2D
+    score_scroll: Texture2D,
+    hand: Texture2D,
+    socket: Texture2D
 }
 
 
@@ -25,12 +27,17 @@ impl Assets {
         let domino_by_id = Self::load_domino_textures().await;
         let draft_scroll = Self::load_scroll_draft_textures().await;
         let score_scroll = Self::load_scroll_score_textures().await;
+        let hand = Self::load_hand_textures().await;
+        let socket = Self::load_socket_textures().await;
+
 
         Self {
             king_by_turn,
             domino_by_id,
             draft_scroll,
-            score_scroll
+            score_scroll,
+            hand,
+            socket
         }
     }
 
@@ -96,6 +103,24 @@ impl Assets {
         texture
     }
 
+    // Loads hand texture
+    async fn load_hand_textures() -> Texture2D {
+        let path = format!("res/img/hand.png");
+        let texture = load_texture(&path).await.unwrap();
+        texture.set_filter(FilterMode::Nearest);
+        texture
+    }
+
+    // Loads socket texture
+    async fn load_socket_textures() -> Texture2D {
+        let path = format!("res/img/socket.png");
+        let texture = load_texture(&path).await.unwrap();
+        texture.set_filter(FilterMode::Nearest);
+        texture
+    }
+
     pub(crate) fn fetch_score_scroll(&self) -> Option<&Texture2D>{Some(&self.score_scroll)}
     pub(crate) fn fetch_draft_scroll(&self) -> Option<&Texture2D>{Some(&self.draft_scroll)}
+    pub(crate) fn fetch_hand(&self) -> Option<&Texture2D>{Some(&self.hand)}
+    pub(crate) fn fetch_socket(&self) -> Option<&Texture2D>{Some(&self.socket)}
 }
