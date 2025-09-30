@@ -118,9 +118,9 @@ impl Gui {
     }
 
     // Detects if R key is pressed and rotates the domino if so (only called during placement phase)
-    pub(crate) fn check_r_key_pressed(&self) {
-        if is_key_down(KeyCode::R) {
-            self.domino_rotation.next();
+    pub(crate) fn check_r_key_pressed(&mut self) {
+        if is_key_pressed(KeyCode::R) {
+            self.domino_rotation = self.domino_rotation.next();
             return;
         }
     }

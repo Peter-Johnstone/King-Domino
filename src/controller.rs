@@ -44,7 +44,7 @@ impl Controller {
 
         Self {
             gui:            Gui::new().await,
-            phase:          Phase::Picking, //The anatomy of a turn is: P1 place, P1 pick, P2 place, P2 pick...
+            phase:          Phase::Picking, // the game will crash if you make this start as Placing, since it tries to draw the default domino
             current_turn: Prio1,
             pick_draft:     draft,
             place_draft:    Draft::null(),
