@@ -45,7 +45,7 @@ impl Assets {
         let mut domino_by_id = HashMap::new();
 
         // Creates the dictionary to be able to fetch the domino texture from the domino id
-        for id in 1..DECK_SIZE + 1 {
+        for id in 1..DECK_SIZE + 2 { //I did +2 not +1 because I want this function to load the castle texture which is domino 49
 
             let path = format!("res/img/dominoes/domino_{}.png", id); // +1 because our img names start with 1
 
@@ -82,8 +82,11 @@ impl Assets {
     /// Fetches the domino texture given an id between 1 and 48
     pub(crate) fn fetch_domino_texture_by_id(&self, id: u8) -> Option<&Texture2D> {
 
-        // We should never fetch an impossible id
-        assert!(self.domino_by_id.contains_key(&id), "id: {id}");
+        if id != 49 {
+            // We should never fetch an impossible id... Unless its the castle! :) castle has id 99
+            assert!(self.domino_by_id.contains_key(&id), "id: {id}");
+        }
+        
 
         self.domino_by_id.get(&id)
     }

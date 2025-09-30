@@ -35,6 +35,8 @@ impl Player {
         self.id
     }
 
+    pub(crate) fn grid(&self) -> &Grid {&self.grid}
+
     pub(crate) fn update_last_picked(&mut self, domino: Domino) {
         // We are now placing the domino we stored from last round.
         self.placing = self.picked;

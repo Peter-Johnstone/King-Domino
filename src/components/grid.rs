@@ -60,7 +60,7 @@ impl Grid
             down_map: [[false; 9]; 9],
             left_map: [[false; 9]; 9],
             right_map: [[false; 9]; 9],
-            domino_map: vec![GridDomino::new(0,0,99,0.0)],
+            domino_map: vec![GridDomino::new(0,0,49,0.0)],
 
             dm_lower_x: 0,
             dm_upper_x: 0,
@@ -251,18 +251,11 @@ impl Grid
     }
 
     //These ought 4 fns to be called upon by the gui
-    pub(crate) fn get_up_map(&self) -> &[[bool; 9]; 9] {
-        &self.up_map
-    }
-    pub(crate) fn get_down_map(&self) -> &[[bool; 9]; 9] {
-        &self.down_map
-    }
-    pub(crate) fn get_left_map(&self) -> &[[bool; 9]; 9] {
-        &self.left_map
-    }
-    pub(crate) fn get_right_map(&self) -> &[[bool; 9]; 9] {
-        &self.right_map
-    }
+    pub(crate) fn up_map(&self) -> &[[bool; 9]; 9] {&self.up_map}
+    pub(crate) fn down_map(&self) -> &[[bool; 9]; 9] {&self.down_map}
+    pub(crate) fn left_map(&self) -> &[[bool; 9]; 9] {&self.left_map}
+    pub(crate) fn right_map(&self) -> &[[bool; 9]; 9] {&self.right_map}
+    pub(crate) fn domino_map(&self) -> &Vec<GridDomino> {&self.domino_map}
 
     //Get the bot maps
     pub(crate) fn get_bot_maps(&self) -> &Vec<[[Tile; 9]; 9]> {

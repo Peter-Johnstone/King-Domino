@@ -23,6 +23,7 @@ pub struct Controller {
     deck: Deck,
     players: [Player; 4],
     active_player_id: usize,
+    subturn_number: u8, // This is from 1-4, helps the gui know how many dominos to remove from the drawn draft
 }
 
 impl Controller {
@@ -50,7 +51,8 @@ impl Controller {
             place_draft:    Draft::null(),
             deck,
             players,
-            active_player_id: 0
+            active_player_id: 0,
+            subturn_number: 0 // technically starts at zero since we dont remove the domino on the first turn
         }
     }
 
@@ -71,7 +73,7 @@ impl Controller {
         while running {
 
             self.update(); 
-            self.gui.draw(&self.pick_draft, &self.place_draft, &self.active_player_id, &self.phase, &self.players);
+            self.gui.draw(&self.pick_draft, &self.place_draft, &self.active_player_id, &self.phase, &self.players, &self.subturn_number);
             next_frame().await;
 
         }
@@ -123,6 +125,9 @@ impl Controller {
                         self.advance_turn();
                         return;
                     } else {
+                        // else is called for all turns of the game besides the first
+                        self.subturn_number+=1;
+                        if self.subturn_number%5==0{self.subturn_number=1;}
                         self.phase = Phase::Placing;
                     }
                 }
