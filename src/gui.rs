@@ -100,13 +100,13 @@ impl Gui {
         draw_line(screen_width()*(2.0/3.0), 0.0, screen_width()*(2.0/3.0), screen_height(), 5.0, color);    //virt
 
         // Draw scrolls
-        self.draw_obj(self.assets.fetch_draft_scroll(), 0.0,(screen_height()/4.0)-75.0, board_gui::SCROLL_SIZE, 0.0);
-        self.draw_obj(self.assets.fetch_score_scroll(), 0.0, (screen_height()*(3.0/4.0))-50.0, board_gui::SCROLL_SIZE, 0.0);
+        self.draw_obj(self.assets.fetch_draft_scroll(), 0.0,(screen_height()/4.0)-75.0, board_gui::SCROLL_SIZE);
+        self.draw_obj(self.assets.fetch_score_scroll(), 0.0, (screen_height()*(3.0/4.0))-50.0, board_gui::SCROLL_SIZE);
 
         // Draw king icons on score box
         for idx in 1..5 {
             let i: f32 = idx as f32;
-            self.draw_obj(self.assets.fetch_king_texture_by_turn(idx), 100.0, screen_height()*(3.0/4.0)-200.0+i*75.0, board_gui::SCORE_KING_SIZE, 0.0);
+            self.draw_obj(self.assets.fetch_king_texture_by_turn(idx), 100.0, screen_height()*(3.0/4.0)-200.0+i*75.0, board_gui::SCORE_KING_SIZE);
         }
 
         // Draw colored borders within grid panes
@@ -154,7 +154,7 @@ impl Gui {
     /// The overarching draw function. Called each frame of the game.
     pub(crate) fn draw(&self, pick_draft: &Draft, place_draft: &Draft, active_player_id: &usize, phase: &Phase, player_list: &[Player; 4], subturn_number: &u8) {
         let active_player = Gui::get_active_player(active_player_id, player_list);
-
+        // assert!(active_player.picked().id() < 49, "You managed to click on a domino with id greater than 48. The id is {}", active_player.picked().id());
         let mut valid_draft_doms: [bool;4] = [true;4];
         clear_background(board_gui::BACKGROUND_COLOR);
         self.make_containers();
@@ -247,7 +247,7 @@ impl Gui {
     }
 
     // Draws a scroll on the screen
-    fn draw_obj(&self, texture: Option<&Texture2D>, x: f32, y: f32, size: f32, rotation: f64){
+    fn draw_obj(&self, texture: Option<&Texture2D>, x: f32, y: f32, size: f32){
         debug_assert_ne!(texture, None);
         let texture = texture.unwrap(); // extract from Some(texture) -> texture
         draw_texture_ex(texture, x, y, WHITE, DrawTextureParams {
@@ -291,7 +291,7 @@ impl Gui {
         draw_multiline_text(&curr_advice, -10.0, screen_height()/2.0 - 75.0, 20.0, Some(0.3), WHITE);
         
         //Draw king of active player
-        self.draw_obj(self.assets.fetch_king_texture_by_turn(active_player_id as u8), screen_width()/3.0-50.0, screen_height()/2.0, 30.0, 0.0);
+        self.draw_obj(self.assets.fetch_king_texture_by_turn(active_player_id as u8), screen_width()/3.0-50.0, screen_height()/2.0, 30.0);
     }
 
     fn undraw_old_doms(&self, subturn_number: &u8) -> [bool;4]  {
@@ -317,14 +317,21 @@ impl Gui {
             PlacementDominoRotation::RIGHT => {rotation = PI*(3.0/2.0);}
         }
         // then draw domino, based on rotation enum. (Pressing 'r' cycles through the enum)
-        let mut x_offset: f32 = 0.0; //TODO: once picking logic is done, fine tune offsets
-        let mut y_offset: f32 = 0.0; //TODO: once picking logic is done, fine tune offsets
-        self.draw_obj(self.assets.fetch_domino_texture_by_id(active_player.picked().id()), mouse_x + x_offset, mouse_y + y_offset, 30.0, rotation);
-        
+        let mut x_offset: f32 = -draft_gui::DOMINO_TILE_SIZE/2.0; //TODO: once picking logic is done, fine tune offsets
+        let mut y_offset: f32 = -draft_gui::DOMINO_TILE_SIZE/2.0; //TODO: once picking logic is done, fine tune offsets
+        draw_texture_ex(
+            self.assets.fetch_domino_texture_by_id(active_player.picked().id()).unwrap(),
+            mouse_x + x_offset,
+            mouse_y + y_offset,
+            WHITE, DrawTextureParams {
+            dest_size: Some(Vec2::new(draft_gui::DOMINO_TILE_SIZE*2.0, draft_gui::DOMINO_TILE_SIZE)),
+            rotation: rotation as f32,
+            ..Default::default()
+        }, );
         // then draw hand
-        x_offset = 0.0; //TODO: once picking logic is done, fine tune offsets
-        y_offset = 0.0; //TODO: once picking logic is done, fine tune offsets
-        self.draw_obj(self.assets.fetch_hand(), mouse_x + x_offset, mouse_y + y_offset, 30.0, 0.0);
+        x_offset = -draft_gui::DOMINO_TILE_SIZE/2.0; //TODO: once picking logic is done, fine tune offsets
+        y_offset = -draft_gui::DOMINO_TILE_SIZE/2.0; //TODO: once picking logic is done, fine tune offsets
+        self.draw_obj(self.assets.fetch_hand(), mouse_x + x_offset, mouse_y + y_offset, draft_gui::DOMINO_TILE_SIZE);
 
         return;
     }
@@ -352,7 +359,7 @@ impl Gui {
         for row in 0..socket_map[0].len(){
             for col in 0..socket_map.len(){
                 if socket_map[row][col] {
-                    self.draw_obj(self.assets.fetch_socket(), offset.0, offset.1, draft_gui::DOMINO_TILE_SIZE, 0.0);
+                    self.draw_obj(self.assets.fetch_socket(), offset.0, offset.1, draft_gui::DOMINO_TILE_SIZE);
                 }
             }
         }
@@ -410,7 +417,15 @@ impl Gui {
             
             let rotation: f64 = *grid_domino.rotation();
             let texture_option: Option<&Texture2D> = self.assets.fetch_domino_texture_by_id(*grid_domino.domino_id() as u8);
-            self.draw_obj(texture_option, x, y, draft_gui::DOMINO_TILE_SIZE, rotation);
+            draw_texture_ex(
+                texture_option.unwrap(),
+                x,
+                y,
+                WHITE, DrawTextureParams {
+                dest_size: Some(Vec2::new(draft_gui::DOMINO_TILE_SIZE, draft_gui::DOMINO_TILE_SIZE)),
+                rotation: rotation as f32,
+                ..Default::default()
+            }, );
 
         }
 

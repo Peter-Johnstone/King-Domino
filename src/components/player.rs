@@ -1,7 +1,5 @@
 use crate::components::domino::Domino;
-use crate::components::tile::Tile;
 use crate::components::grid::Grid;
-use crate::components::deck::Deck;
 
 #[derive(Clone)]
 pub(crate) struct Player {
@@ -21,10 +19,10 @@ impl Player {
         }
     }
     
-    /// Returns the domino that this player picked last
-    pub(crate) fn last_picked(&self) -> Domino {
-        self.picked
-    }
+    // /// Returns the domino that this player picked last
+    // pub(crate) fn last_picked(&self) -> Domino {
+    //     self.picked
+    // }
 
     /// Ensures that the player has a domino to be placed. Useful during the first round of the game
     pub(crate) fn is_not_placing(&self) -> bool {
@@ -38,6 +36,7 @@ impl Player {
     pub(crate) fn grid(&self) -> &Grid {&self.grid}
 
     pub(crate) fn update_last_picked(&mut self, domino: Domino) {
+        assert_ne!(domino.id(), 100, "the domino id is {}", domino.id());
         // We are now placing the domino we stored from last round.
         self.placing = self.picked;
 
@@ -50,13 +49,11 @@ impl Player {
     pub(crate) fn picked(&self)->Domino{self.picked}
 
     // TODO: IMPLEMENT/
-    pub(crate) fn domino_placement(&mut self) {
-        self.placing = self.picked;
-        self.picked = Domino::null(); //update state
+    pub(crate) fn domino_placement(&mut self) -> bool {
         let has_room_left = self.grid.build_maps(self.placing); //builds botmaps and the directional bool maps
         if !has_room_left {
             println!("there was no room left for player {}", self.id()); // occurs when the bot_maps vec is of len ==0
-            return;
+            return true;
         }
         /*
 TODO:
@@ -74,7 +71,7 @@ TODO:
         // Also each grid is a vector of vectors... so... Also each grid has Tiles specifically
         // let grid_vec: Vec<Vec<Vec<Tile>>> = self.grid.some_func(self.picked);
         // Have gui allow the user to parse the possible options
-        return;
+        return false;
     }
 
 }

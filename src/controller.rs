@@ -1,6 +1,5 @@
 use macroquad::window::next_frame;
 use crate::components::deck::Deck;
-use crate::components::domino::Domino;
 use crate::components::draft::Draft;
 use crate::components::turn::Turn;
 use crate::gui::Gui;
@@ -45,7 +44,7 @@ impl Controller {
 
         Self {
             gui:            Gui::new().await,
-            phase:          Phase::Placing, //The anatomy of a turn is: P1 place, P1 pick, P2 place, P2 pick...
+            phase:          Phase::Picking, //The anatomy of a turn is: P1 place, P1 pick, P2 place, P2 pick...
             current_turn: Prio1,
             pick_draft:     draft,
             place_draft:    Draft::null(),
@@ -96,17 +95,18 @@ impl Controller {
             Phase::Placing => {
                 self.gui.check_r_key_pressed();
                 let temp_player = self.players.get_mut(self.active_player_id-1);
+                let mut ready_to_place: bool = true;
                 match temp_player {
                     Some(temp_player) => {
-                        temp_player.domino_placement();
+                        ready_to_place = temp_player.domino_placement();
                     }
                     None => {
                         eprintln!("Out of bounds error when accessing the players array before domino_placement")
                     }
                 }
                 
-                self.advance_turn();
-                self.phase = Phase::Picking;
+                // self.advance_turn();
+                if ready_to_place {self.phase = Phase::Picking;}
             }
 
             Phase::Picking => {
@@ -119,7 +119,7 @@ impl Controller {
                 if let Some(domino) = picked {
                     self.players[idx].update_last_picked(domino);
 
-                    //First turn Skipping
+                    //First turn you go twice
                     if self.players[idx].is_not_placing() {
                         // Annoying exception during the first round of the game. We pick but do not place.
                         self.advance_turn();
@@ -134,31 +134,6 @@ impl Controller {
             }
 
         }
-    }
-
-
-
-
-    /// Performs the turn of the active player
-    ///
-    /// 1: Place the domino that we picked in the previous round
-    /// 2: Pick a new domino from the available domino list
-    /// 3: Advance the turn
-    fn perform_turn(&mut self) {
-
-        // Place cached domino
-        let last_picked = self.players[self.current_turn.idx()].last_picked();
-
-        // TODO: this is wrong! on the first turn of the game, the last_picked SHOULD be null
-        debug_assert_ne!(last_picked, Domino::null());
-
-
-        // Pick from draft
-        // TODO: we need to implement the logic for actually deciding which domino to pick
-        let pick_idx = 0;
-
-
-        self.advance_turn();
     }
 
 
@@ -188,10 +163,10 @@ impl Controller {
 
 
 
-    /// Ends the game
-    fn end_game(&mut self) {
-        return
-    }
+    // /// Ends the game
+    // fn end_game(&mut self) {
+    //     return
+    // }
 
     /// Returns true iff all players have placed their last tile
     fn game_over(&self) -> bool {
