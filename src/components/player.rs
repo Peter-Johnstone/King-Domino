@@ -1,7 +1,5 @@
 use crate::components::domino::Domino;
-use crate::components::tile::Tile;
 use crate::components::grid::Grid;
-use crate::components::deck::Deck;
 
 #[derive(Clone)]
 pub(crate) struct Player {
@@ -21,16 +19,10 @@ impl Player {
         }
     }
     
-
-    pub(crate) fn has_no_room_left(&self) -> bool {
-        self.grid.has_no_room_left()
-    }
-
-
-    /// Returns the domino that this player picked last
-    pub(crate) fn last_picked(&self) -> Domino {
-        self.picked
-    }
+    // /// Returns the domino that this player picked last
+    // pub(crate) fn last_picked(&self) -> Domino {
+    //     self.picked
+    // }
 
     /// Ensures that the player has a domino to be placed. Useful during the first round of the game
     pub(crate) fn is_not_placing(&self) -> bool {
@@ -41,7 +33,10 @@ impl Player {
         self.id
     }
 
+    pub(crate) fn grid(&self) -> &Grid {&self.grid}
+
     pub(crate) fn update_last_picked(&mut self, domino: Domino) {
+        assert_ne!(domino.id(), 100, "the domino id is {}", domino.id());
         // We are now placing the domino we stored from last round.
         self.placing = self.picked;
 
@@ -51,20 +46,20 @@ impl Player {
 
     }
 
+    pub(crate) fn picked(&self)->Domino{self.picked}
+
     // TODO: IMPLEMENT/
-    pub(crate) fn domino_placement(&mut self) {
-        self.placing = self.picked;
-        self.picked = Domino::null(); //update state
-        self.grid.build_maps(self.placing); //TODO: Not totally done yet, need to add logic for second_match()
+    pub(crate) fn domino_placement(&mut self) -> bool {
+        let has_room_left = self.grid.build_maps(self.placing); //builds botmaps and the directional bool maps
+        if !has_room_left {
+            println!("there was no room left for player {}", self.id()); // occurs when the bot_maps vec is of len ==0
+            return true;
+        }
         /*
 TODO:
 
         --GUI--
-        X) Undraw king from self.picked texture
-        X) Draw hand on .picked anchor tile (the left tile of the domino)
-        X) Have self.picked texture + hand texture follow cursor
-        X) starting with UP, gui should display all sockets valid for that group, cycling to the next group
-            when 'r' is pressed
+        X) gui should display all sockets valid for self.domino_rotation
         X) Gui needs to detect a click when each socket is pressed, sends socket and rotation back here.
         X) self.grid.position_selected(&mut self, self.picking.id(), x, y, rotation in radians)
         X) self.placing = Domino::null()
@@ -76,7 +71,7 @@ TODO:
         // Also each grid is a vector of vectors... so... Also each grid has Tiles specifically
         // let grid_vec: Vec<Vec<Vec<Tile>>> = self.grid.some_func(self.picked);
         // Have gui allow the user to parse the possible options
-        return;
+        return false;
     }
 
 }

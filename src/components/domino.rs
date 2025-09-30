@@ -66,6 +66,14 @@ impl Domino
             _ => {panic!("Invalid id passed to get_tile_type: expected 1 or 2, got {}", id)}
         }
     }
+
+    pub(crate) fn get_tile(&self, id: usize) -> Tile{
+        match id {
+            1 => {self.tile1}
+            2 => {self.tile2}
+            _ => {panic!("You tried to get a tile that did not exist, you need to use 1 or 2 as a parameter")}
+        }
+    }
     
 
 }

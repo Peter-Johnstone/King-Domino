@@ -104,6 +104,4 @@ impl Draft {
 
         self.draft[..DRAFT_SIZE].iter()
     }
-
-
 }
