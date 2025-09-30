@@ -3,7 +3,7 @@ use macroquad::color::WHITE;
 use macroquad::input::{is_mouse_button_pressed, MouseButton};
 use macroquad::prelude::*;
 use crate::assets::Assets;
-use crate::components::{grid, grid_domino};
+use crate::components::{draft, grid, grid_domino};
 use crate::components::grid_domino::GridDomino;
 use crate::controller::Phase;
 use crate::components::domino::Domino;
@@ -153,7 +153,7 @@ impl Gui {
 
     /// The overarching draw function. Called each frame of the game.
     pub(crate) fn draw(&self, pick_draft: &Draft, place_draft: &Draft, active_player_id: &usize, phase: &Phase, player_list: &[Player; 4], subturn_number: &u8) {
-        let active_player = Gui::get_active_player(active_player_id, player_list);
+        let active_player = Gui::get_active_player(subturn_number, player_list);
         // assert!(active_player.picked().id() < 49, "You managed to click on a domino with id greater than 48. The id is {}", active_player.picked().id());
         let mut valid_draft_doms: [bool;4] = [true;4];
         clear_background(board_gui::BACKGROUND_COLOR);
@@ -289,7 +289,6 @@ impl Gui {
         }
         //Draw text
         draw_multiline_text(&curr_advice, -10.0, screen_height()/2.0 - 75.0, 20.0, Some(0.3), WHITE);
-        
         //Draw king of active player
         self.draw_obj(self.assets.fetch_king_texture_by_turn(active_player_id as u8), screen_width()/3.0-50.0, screen_height()/2.0, 30.0);
     }
@@ -308,19 +307,20 @@ impl Gui {
         
         // get cursor coords
         let (mouse_x, mouse_y) = mouse_position();
+        // offsets
+        let mut x_offset: f32 = -draft_gui::DOMINO_TILE_SIZE/2.0; //TODO: once picking logic is done, fine tune offsets
+        let mut y_offset: f32 = -draft_gui::DOMINO_TILE_SIZE/2.0; //TODO: once picking logic is done, fine tune offsets
         // get rotation in radians
         let rotation: f64;
         match self.domino_rotation {
             PlacementDominoRotation::UP => {rotation = 0.0;}
-            PlacementDominoRotation::LEFT => {rotation = PI/2.0;}
-            PlacementDominoRotation::DOWN => {rotation = PI;}
-            PlacementDominoRotation::RIGHT => {rotation = PI*(3.0/2.0);}
+            PlacementDominoRotation::LEFT => {rotation = PI/2.0; x_offset = x_offset - draft_gui::DOMINO_TILE_SIZE/2.0; y_offset = y_offset + draft_gui::DOMINO_TILE_SIZE/2.0}
+            PlacementDominoRotation::DOWN => {rotation = PI; x_offset = x_offset - draft_gui::DOMINO_TILE_SIZE}
+            PlacementDominoRotation::RIGHT => {rotation = PI*(3.0/2.0); x_offset = x_offset - draft_gui::DOMINO_TILE_SIZE/2.0; y_offset = y_offset - draft_gui::DOMINO_TILE_SIZE/2.0}
         }
         // then draw domino, based on rotation enum. (Pressing 'r' cycles through the enum)
-        let mut x_offset: f32 = -draft_gui::DOMINO_TILE_SIZE/2.0; //TODO: once picking logic is done, fine tune offsets
-        let mut y_offset: f32 = -draft_gui::DOMINO_TILE_SIZE/2.0; //TODO: once picking logic is done, fine tune offsets
         draw_texture_ex(
-            self.assets.fetch_domino_texture_by_id(active_player.picked().id()).unwrap(),
+            self.assets.fetch_domino_texture_by_id(active_player.placing().id()).unwrap(),
             mouse_x + x_offset,
             mouse_y + y_offset,
             WHITE, DrawTextureParams {
@@ -369,9 +369,9 @@ impl Gui {
     }
 
     //get active player obj here so i dont have to do this a gazillion times
-    fn get_active_player<'a>(active_player_id: &usize, player_list: &'a [Player; 4]) -> &'a Player {
-        let id = *active_player_id;
-        player_list.get(id.saturating_sub(1)).expect(&format!("There was an error. active_player_id is {}", *active_player_id)) 
+    fn get_active_player<'a>(active_player_id: &u8, player_list: &'a [Player; 4]) -> &'a Player {
+        let id = (*active_player_id).saturating_sub(1);
+        player_list.get(id as usize).expect(&format!("There was an error. active_player_id is {}", *active_player_id)) 
     }
 
     // gives the coords of the active player's box

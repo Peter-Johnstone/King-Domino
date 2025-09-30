@@ -22,6 +22,7 @@ pub struct Controller {
     deck: Deck,
     players: [Player; 4],
     active_player_id: usize,
+    turn_number:u8,
     subturn_number: u8, // This is from 1-4, helps the gui know how many dominos to remove from the drawn draft
 }
 
@@ -32,10 +33,10 @@ impl Controller {
     pub async fn new() -> Self {
 
         let players = [
-            Player::new(1),
-            Player::new(2),
-            Player::new(3),
-            Player::new(4),
+            Player::new(1, "Blue"),
+            Player::new(2, "Green"),
+            Player::new(3, "Red"),
+            Player::new(4, "Yellow"),
         ];
 
         let mut deck = Deck::initial();
@@ -51,7 +52,8 @@ impl Controller {
             deck,
             players,
             active_player_id: 0,
-            subturn_number: 0 // technically starts at zero since we dont remove the domino on the first turn
+            turn_number: 0,
+            subturn_number: 0 // technically starts at zero since we dont remove the domino on the first turn. used to trim draft gui
         }
     }
 
@@ -110,6 +112,7 @@ impl Controller {
             }
 
             Phase::Picking => {
+                
                 let picked = {
                     // pass a mutable reference so GUI/pick logic can update player state if needed
                     let player_ref = &mut self.players[idx];
@@ -117,19 +120,22 @@ impl Controller {
                 };
 
                 if let Some(domino) = picked {
+                    self.subturn_number = self.subturn_number.wrapping_add(1);
                     self.players[idx].update_last_picked(domino);
+                    println!("Player {} has picked domino of id {}", self.players[idx].name(), self.players[idx].placing().id());
 
-                    //First turn you go twice
-                    if self.players[idx].is_not_placing() {
-                        // Annoying exception during the first round of the game. We pick but do not place.
+                    
+                    if self.turn_number == 0 && self.subturn_number != 4{ //First turn the placing phase is skipped
                         self.advance_turn();
                         return;
-                    } else {
-                        // else is called for all turns of the game besides the first
-                        self.subturn_number+=1;
-                        if self.subturn_number%5==0{self.subturn_number=1;}
-                        self.phase = Phase::Placing;
                     }
+
+                    if self.pick_draft.is_empty() {
+                        self.advance_turn();
+                    }
+
+                    if self.subturn_number%4==0{self.subturn_number=1; self.turn_number+=1;}
+                    self.phase = Phase::Placing;
                 }
             }
 

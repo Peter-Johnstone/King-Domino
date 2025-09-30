@@ -7,15 +7,17 @@ pub(crate) struct Player {
     picked: Domino,
     placing: Domino,
     grid: Grid,
+    name: String,
 }
 
 impl Player {
-    pub(crate) fn new(id: u8) -> Self {
+    pub(crate) fn new(id: u8, name: &str) -> Self {
         Self {
             id,
             picked: Domino::null(),
             placing: Domino::null(),
             grid: Grid::new(),
+            name: name.to_string(),
         }
     }
     
@@ -29,24 +31,25 @@ impl Player {
         self.placing.is_null()
     }
 
-    pub(crate) fn id(&self) -> u8 {
-        self.id
-    }
+    pub(crate) fn id(&self) -> u8 {self.id}
+
+    pub(crate) fn name(&self) -> &String {&self.name}
 
     pub(crate) fn grid(&self) -> &Grid {&self.grid}
 
     pub(crate) fn update_last_picked(&mut self, domino: Domino) {
         assert_ne!(domino.id(), 100, "the domino id is {}", domino.id());
         // We are now placing the domino we stored from last round.
-        self.placing = self.picked;
+        self.placing = domino;
 
         // Now we cache the new picked domino
-        self.picked = domino;
+        self.picked = Domino::null();
 
 
     }
 
-    pub(crate) fn picked(&self)->Domino{self.picked}
+    // pub(crate) fn picked(&self)->Domino{self.picked}
+    pub(crate) fn placing(&self)->Domino{self.placing}
 
     // TODO: IMPLEMENT/
     pub(crate) fn domino_placement(&mut self) -> bool {
