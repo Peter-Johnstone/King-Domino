@@ -53,6 +53,7 @@ impl Player {
 
     // TODO: IMPLEMENT/
     pub(crate) fn domino_placement(&mut self) -> bool {
+        assert_ne!(self.placing.id(), 100, "For some reason the maps are trying to be built with a null domino");
         let has_room_left = self.grid.build_maps(self.placing); //builds botmaps and the directional bool maps
         if !has_room_left {
             println!("there was no room left for player {}", self.id()); // occurs when the bot_maps vec is of len ==0

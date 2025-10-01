@@ -24,8 +24,10 @@ mod board_gui {
 }
 
 mod grid_multipliers_gui {
-    pub(crate) const X_MULTIPLIER: f32 = 50.0;
-    pub(crate) const Y_MULTIPLIER: f32 = 50.0;
+    use crate::gui::draft_gui;
+
+    pub(crate) const X_MULTIPLIER: f32 = draft_gui::DOMINO_TILE_SIZE;
+    pub(crate) const Y_MULTIPLIER: f32 = draft_gui::DOMINO_TILE_SIZE;
 }
 
 mod text_bank {
@@ -344,25 +346,29 @@ impl Gui {
                 socket_map = active_player.grid().up_map();
             }
             PlacementDominoRotation::LEFT => {
-                socket_map = active_player.grid().up_map();
+                socket_map = active_player.grid().left_map();
             }
             PlacementDominoRotation::DOWN => {
-                socket_map = active_player.grid().up_map();
+                socket_map = active_player.grid().down_map();
             }
             PlacementDominoRotation::RIGHT => {
-                socket_map = active_player.grid().up_map();
+                socket_map = active_player.grid().right_map();
             }
         }
 
+        // println!("Start of testing");
         //calculate offset (find coord of middle of player's box)
         let offset: (f32, f32) = Gui::get_active_player_box_offset(active_player);
         for row in 0..socket_map[0].len(){
             for col in 0..socket_map.len(){
-                if socket_map[row][col] {
-                    self.draw_obj(self.assets.fetch_socket(), offset.0, offset.1, draft_gui::DOMINO_TILE_SIZE);
+                // print!("{}\t", socket_map[row][col]);
+                if socket_map[row][col] {                    
+                    self.draw_obj(self.assets.fetch_socket(), offset.0 + (row as f32)*grid_multipliers_gui::X_MULTIPLIER, offset.1 + (col as f32)*grid_multipliers_gui::Y_MULTIPLIER, draft_gui::DOMINO_TILE_SIZE);
                 }
             }
+            // print!("\n")
         }
+        // panic!("End of testing");
         
 
         return;

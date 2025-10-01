@@ -96,7 +96,7 @@ impl Controller {
             //will cycle 4 times per turn cycle
             Phase::Placing => {
                 self.gui.check_r_key_pressed();
-                let temp_player = self.players.get_mut(self.active_player_id-1);
+                let temp_player = self.players.get_mut((self.subturn_number-1) as usize);
                 let mut ready_to_place: bool = true;
                 match temp_player {
                     Some(temp_player) => {
