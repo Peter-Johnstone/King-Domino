@@ -60,7 +60,7 @@ impl Grid
             down_map: [[false; 9]; 9],
             left_map: [[false; 9]; 9],
             right_map: [[false; 9]; 9],
-            domino_map: vec![GridDomino::new(0,0,49,0.0)],
+            domino_map: vec![GridDomino::new(4,4,49,0.0)],
 
             dm_lower_x: 4,
             dm_upper_x: 4,
@@ -285,4 +285,10 @@ impl Grid
         temp_map[4][4] = Tile::new(Types::Castle, 0);
         temp_map
     }
+
+    pub(crate) fn tile_map(&self) -> &[[Tile;9];9]{&self.tile_map}
+    pub(crate) fn dm_lower_x(&self) -> &usize{&self.dm_lower_x}
+    pub(crate) fn dm_upper_x(&self) -> &usize{&self.dm_upper_x}
+    pub(crate) fn dm_lower_y(&self) -> &usize{&self.dm_lower_y}
+    pub(crate) fn dm_upper_y(&self) -> &usize{&self.dm_upper_y}
 }

@@ -78,6 +78,10 @@ mod draft_gui {
 pub(crate) struct Gui {
     assets: Assets,
     domino_rotation: PlacementDominoRotation,
+    blue_offset: [f32;2], //map offsets
+    green_offset: [f32;2], //map offsets
+    red_offset: [f32;2], //map offsets
+    yellow_offset: [f32;2], //map offsets
 }
 
 impl Gui {
@@ -86,6 +90,11 @@ impl Gui {
         Self {
             assets: Assets::load().await,
             domino_rotation: PlacementDominoRotation::UP,
+            blue_offset: [0.0;2],
+            green_offset: [0.0;2],
+            red_offset: [0.0;2],
+            yellow_offset: [0.0;2],
+
         }
     }
 
@@ -154,7 +163,7 @@ impl Gui {
 
 
     /// The overarching draw function. Called each frame of the game.
-    pub(crate) fn draw(&self, pick_draft: &Draft, place_draft: &Draft, active_player_id: &usize, phase: &Phase, player_list: &[Player; 4], subturn_number: &u8) {
+    pub(crate) fn draw(&mut self, pick_draft: &Draft, place_draft: &Draft, active_player_id: &usize, phase: &Phase, player_list: &[Player; 4], subturn_number: &u8) {
         let active_player = Gui::get_active_player(subturn_number, player_list);
         // assert!(active_player.picked().id() < 49, "You managed to click on a domino with id greater than 48. The id is {}", active_player.picked().id());
         let mut valid_draft_doms: [bool;4] = [true;4];
@@ -163,14 +172,15 @@ impl Gui {
         self.add_advice_box(*active_player_id, phase); 
         self.draw_draft(pick_draft, draft_gui::PICK_DOMINO_X, valid_draft_doms); // unsure if valid_draft_doms should always be true for this line. If you get a weird error where the unpicked doms are not showing up, this line is the issue
         for temp_player in player_list {
+            self.update_offset(temp_player);
             self.draw_domino_map(temp_player); // Draws the domino maps for each player regardless of if they are active
         }
         
         match phase {
             Phase::Placing => {
+                self.draw_sockets(active_player);
                 valid_draft_doms = self.undraw_old_doms(subturn_number);
                 self.draw_placing_textures_if_placing(active_player);
-                self.draw_sockets(active_player);
             }
             Phase::Picking => {}
         }
@@ -358,17 +368,20 @@ impl Gui {
 
         // println!("Start of testing");
         //calculate offset (find coord of middle of player's box)
-        let offset: (f32, f32) = Gui::get_active_player_box_offset(active_player);
+        let map_offset: &[f32; 2] = self.fetch_offset(active_player.id());
         for row in 0..socket_map[0].len(){
             for col in 0..socket_map.len(){
                 // print!("{}\t", socket_map[row][col]);
                 if socket_map[row][col] {                    
-                    self.draw_obj(self.assets.fetch_socket(), offset.0 + (row as f32)*grid_multipliers_gui::X_MULTIPLIER, offset.1 + (col as f32)*grid_multipliers_gui::Y_MULTIPLIER, draft_gui::DOMINO_TILE_SIZE);
+                    self.draw_obj(self.assets.fetch_socket(),
+                    map_offset[0] - (8.0 - row as f32)*grid_multipliers_gui::X_MULTIPLIER, 
+                    map_offset[1] - (8.0 - col as f32)*grid_multipliers_gui::Y_MULTIPLIER, 
+                    draft_gui::DOMINO_TILE_SIZE);
                 }
             }
             // print!("\n")
         }
-        // panic!("End of testing");
+        //panic!("End of testing");
         
 
         return;
@@ -412,15 +425,12 @@ impl Gui {
 
     fn draw_domino_map(&self, active_player: &Player) {
         let domino_map: &Vec<GridDomino> = active_player.grid().domino_map();
-        let offset: (f32, f32) = Gui::get_active_player_box_offset(active_player);
-        let x_offset: f32 = offset.0; // this offset pinpoints the exact x_pos center of the active_player's colored box.
-        let y_offset: f32 = offset.1; // this offset pinpoints the exact y_pos center of the active_player's colored box.
+        let map_offset: &[f32; 2] = self.fetch_offset(active_player.id());
         assert_ne!(0, domino_map.len(), "The length of the domino map is 0, it ought to start at 1. len is: {}", domino_map.len());
-
+        
         for grid_domino in domino_map {
-            let x = x_offset - draft_gui::DOMINO_TILE_SIZE/2.0 + grid_multipliers_gui::X_MULTIPLIER * (*grid_domino.x() as f32);
-            let y = y_offset - draft_gui::DOMINO_TILE_SIZE/2.0 + grid_multipliers_gui::X_MULTIPLIER * (*grid_domino.y() as f32);
-            
+            let x = map_offset[0] - grid_multipliers_gui::X_MULTIPLIER * (*grid_domino.x() as f32);
+            let y = map_offset[1] - grid_multipliers_gui::Y_MULTIPLIER * (*grid_domino.y() as f32);
             let rotation: f64 = *grid_domino.rotation();
             let texture_option: Option<&Texture2D> = self.assets.fetch_domino_texture_by_id(*grid_domino.domino_id() as u8);
             draw_texture_ex(
@@ -437,4 +447,35 @@ impl Gui {
 
     }
 
+    fn fetch_offset(&self, id: u8) -> &[f32; 2] {
+        match id {
+            1 => {&self.blue_offset}
+            2 => {&self.green_offset}
+            3 => {&self.red_offset}
+            4 => {&self.yellow_offset}
+            _ => {panic!("you called fetch_offset with an id not corresponding to any colors")}
+        }
+    }
+
+    fn update_offset(&mut self, active_player: &Player) {
+        let offset: (f32, f32) = Gui::get_active_player_box_offset(active_player); // box offset... still needs the map offset
+
+        let x_low:  &usize = active_player.grid().dm_lower_x();
+        let x_high: &usize = active_player.grid().dm_upper_x();
+        let y_low:  &usize = active_player.grid().dm_lower_y();
+        let y_high: &usize = active_player.grid().dm_upper_y();
+        let mut x_center: f32 = ((*x_high as f32) + (*x_low as f32) - 1.0)/2.0;
+        let mut y_center: f32 = ((*y_high as f32) + (*y_low as f32) - 1.0)/2.0;
+        x_center = offset.0 + x_center * grid_multipliers_gui::X_MULTIPLIER;
+        y_center = offset.1 + y_center * grid_multipliers_gui::Y_MULTIPLIER;
+
+        match active_player.id() {
+            1 => {self.blue_offset[0] = x_center; self.blue_offset[1] = y_center; }
+            2 => {self.green_offset[0] = x_center; self.green_offset[1] = y_center; }
+            3 => {self.red_offset[0] = x_center; self.red_offset[1] = y_center; }
+            4 => {self.yellow_offset[0] = x_center; self.yellow_offset[1] = y_center; }
+            _ => {panic!("you called fetch_offset with an id not corresponding to any colors")}
+        } 
+        return;
+    }
 }
