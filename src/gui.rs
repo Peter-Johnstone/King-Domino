@@ -177,7 +177,19 @@ impl Gui {
 
         for entry in curr_socket_vec {
             if mx > entry[2] && mx < entry[3] && my > entry[4] && my < entry[5] {
-                return Some(GridDomino::new(entry[0] as u8, entry[1] as u8, cur_player.placing().id() as usize, rotation));
+                println!("row: {}, col: {}", entry[0], entry[1]);
+                //reflect the index accross the center
+                
+                let x_low:  &usize = cur_player.grid().dm_lower_x();
+                let x_high: &usize = cur_player.grid().dm_upper_x();
+                let y_low:  &usize = cur_player.grid().dm_lower_y();
+                let y_high: &usize = cur_player.grid().dm_upper_y();
+                let mut x_center: f32 = ((*x_high as f32) + (*x_low as f32))/2.0;
+                let mut y_center: f32 = ((*y_high as f32) + (*y_low as f32))/2.0;
+                let x = 2.0*x_center - entry[0];
+                let y = 2.0*y_center - entry[1];
+                
+                return Some(GridDomino::new(x as u8, y as u8, cur_player.placing().id() as usize, rotation));
             }
         }
         None
@@ -484,6 +496,14 @@ impl Gui {
                 ..Default::default()
             }, );
             }
+            // TESTING:::::
+            // for i in 0..9 {
+            //     for j in 0..9 {
+            //         print!("{:?}\n",active_player.grid().tile_map()[i][j]);
+            //     }
+            //     println!("");
+            // }
+            // END TESTING:::::
             
 
         }
