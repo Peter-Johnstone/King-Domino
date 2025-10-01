@@ -1,6 +1,7 @@
 use macroquad::window::next_frame;
 use crate::components::deck::Deck;
 use crate::components::draft::Draft;
+use crate::components::grid_domino::GridDomino;
 use crate::components::turn::Turn;
 use crate::gui::Gui;
 use crate::components::player::Player;
@@ -97,18 +98,24 @@ impl Controller {
             Phase::Placing => {
                 self.gui.check_r_key_pressed();
                 let temp_player = self.players.get_mut((self.subturn_number-1) as usize);
-                let mut ready_to_place: bool = true;
+                let some_grid_domino: Option<GridDomino>;
                 match temp_player {
                     Some(temp_player) => {
-                        ready_to_place = temp_player.domino_placement();
+                        let curr_orientation = self.gui.domino_rotation();
+                        let curr_socket_vec = self.gui.get_socket_vec();
+                        some_grid_domino = temp_player.domino_placement(curr_orientation, curr_socket_vec);
+                        match some_grid_domino {
+                            Some(_) => {
+                                self.advance_turn();
+                                self.phase = Phase::Picking;
+                            }
+                            None => {}
+                        }
                     }
                     None => {
                         eprintln!("Out of bounds error when accessing the players array before domino_placement")
                     }
                 }
-                
-                // self.advance_turn();
-                if ready_to_place {self.phase = Phase::Picking;}
             }
 
             Phase::Picking => {

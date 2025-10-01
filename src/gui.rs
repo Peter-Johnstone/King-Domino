@@ -47,7 +47,7 @@ mod text_bank {
     ";
 }
 
-enum PlacementDominoRotation {
+pub enum PlacementDominoRotation {
     UP,
     LEFT,
     DOWN,
@@ -82,6 +82,7 @@ pub(crate) struct Gui {
     green_offset: [f32;2], //map offsets
     red_offset: [f32;2], //map offsets
     yellow_offset: [f32;2], //map offsets
+    curr_socket_locations: Vec<[f32; 6]> // [socket_row, socket_col, x_lower, x_upper, y_lower, y_upper]
 }
 
 impl Gui {
@@ -94,6 +95,7 @@ impl Gui {
             green_offset: [0.0;2],
             red_offset: [0.0;2],
             yellow_offset: [0.0;2],
+            curr_socket_locations: Vec::new(),
 
         }
     }
@@ -156,6 +158,26 @@ impl Gui {
                         return Some(draft.pick(i, cur_player.id()));
                     }
                 }
+            }
+        }
+        None
+    }
+
+    pub(crate) fn picked_socket(cur_player: &Player, curr_orientation: &PlacementDominoRotation, curr_socket_vec: &Vec<[f32; 6]>) -> Option<GridDomino> {
+        if !is_mouse_button_pressed(MouseButton::Left) { return None; }
+        let (mx, my) = mouse_position();
+
+        let rotation: f64;
+        match curr_orientation {
+            PlacementDominoRotation::UP => {rotation = 0.0;}
+            PlacementDominoRotation::LEFT => {rotation = PI/2.0;}
+            PlacementDominoRotation::DOWN => {rotation = PI;}
+            PlacementDominoRotation::RIGHT => {rotation = PI*(3.0/2.0);}
+        }
+
+        for entry in curr_socket_vec {
+            if mx > entry[2] && mx < entry[3] && my > entry[4] && my < entry[5] {
+                return Some(GridDomino::new(entry[0] as u8, entry[1] as u8, cur_player.placing().id() as usize, rotation));
             }
         }
         None
@@ -348,7 +370,7 @@ impl Gui {
         return;
     }
 
-    fn draw_sockets(&self, active_player: &Player){
+    fn draw_sockets(&mut self, active_player: &Player){
         // get the correct socket map based on the orientation enum
         let socket_map: &[[bool; 9]; 9];
         match self.domino_rotation {
@@ -366,13 +388,21 @@ impl Gui {
             }
         }
 
-        // println!("Start of testing");
-        //calculate offset (find coord of middle of player's box)
-        let map_offset: &[f32; 2] = self.fetch_offset(active_player.id());
+        // calculate offset (copy the offset out so we don't hold an immutable borrow of self)
+        let map_offset = *self.fetch_offset(active_player.id());
+
+        // reset stored sockets for this frame
+        self.curr_socket_locations.clear();
+
         for row in 0..socket_map[0].len(){
             for col in 0..socket_map.len(){
                 // print!("{}\t", socket_map[row][col]);
-                if socket_map[row][col] {                    
+                if socket_map[row][col] {   
+                    let x_lower = map_offset[0] - (8.0 - row as f32)*grid_multipliers_gui::X_MULTIPLIER;
+                    let y_lower = map_offset[1] - (8.0 - col as f32)*grid_multipliers_gui::Y_MULTIPLIER;
+                    let x_upper = x_lower + draft_gui::DOMINO_TILE_SIZE;
+                    let y_upper = y_lower + draft_gui::DOMINO_TILE_SIZE;
+                    self.curr_socket_locations.push([row as f32, col as f32, x_lower, x_upper, y_lower, y_upper]);
                     self.draw_obj(self.assets.fetch_socket(),
                     map_offset[0] - (8.0 - row as f32)*grid_multipliers_gui::X_MULTIPLIER, 
                     map_offset[1] - (8.0 - col as f32)*grid_multipliers_gui::Y_MULTIPLIER, 
@@ -433,7 +463,8 @@ impl Gui {
             let y = map_offset[1] - grid_multipliers_gui::Y_MULTIPLIER * (*grid_domino.y() as f32);
             let rotation: f64 = *grid_domino.rotation();
             let texture_option: Option<&Texture2D> = self.assets.fetch_domino_texture_by_id(*grid_domino.domino_id() as u8);
-            draw_texture_ex(
+            if *grid_domino.domino_id() == 49 {
+                draw_texture_ex(
                 texture_option.unwrap(),
                 x,
                 y,
@@ -442,6 +473,18 @@ impl Gui {
                 rotation: rotation as f32,
                 ..Default::default()
             }, );
+            } else {
+                draw_texture_ex(
+                texture_option.unwrap(),
+                x,
+                y,
+                WHITE, DrawTextureParams {
+                dest_size: Some(Vec2::new(draft_gui::DOMINO_TILE_SIZE*2.0, draft_gui::DOMINO_TILE_SIZE)),
+                rotation: rotation as f32,
+                ..Default::default()
+            }, );
+            }
+            
 
         }
 
@@ -478,4 +521,7 @@ impl Gui {
         } 
         return;
     }
+
+    pub(crate) fn domino_rotation(&self) -> &PlacementDominoRotation {&self.domino_rotation}
+    pub(crate) fn get_socket_vec(&self) -> &Vec<[f32; 6]> {&self.curr_socket_locations}
 }

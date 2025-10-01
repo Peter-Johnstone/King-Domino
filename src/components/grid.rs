@@ -2,6 +2,8 @@ use crate::components::domino::Domino;
 use crate::components::tile::Tile;
 use crate::components::tile::Types;
 use crate::components::grid_domino::GridDomino;
+use crate::components::deck::DOMINO_SET;
+use std::f64::consts::PI;
 
 pub enum BuildRotation{
     UP,
@@ -291,4 +293,32 @@ impl Grid
     pub(crate) fn dm_upper_x(&self) -> &usize{&self.dm_upper_x}
     pub(crate) fn dm_lower_y(&self) -> &usize{&self.dm_lower_y}
     pub(crate) fn dm_upper_y(&self) -> &usize{&self.dm_upper_y}
+
+    // adds a grid domino to self.domino_map and updates self.tile_map
+    pub(crate) fn push_domino_map(&mut self, new_gd: GridDomino) {
+        self.domino_map.push(new_gd);
+        self.translate(new_gd);
+    }
+
+    // puts a grid domino into the tile_map
+    pub(crate) fn translate(&mut self, new_gd: GridDomino) {
+        let new_domino = DOMINO_SET[*new_gd.domino_id()];
+        self.tile_map[*new_gd.x() as usize][*new_gd.y() as usize] = new_domino.get_tile(1);
+        let angle = *new_gd.rotation();
+
+        if angle < PI / 4.0 {
+            // UP
+            self.tile_map[(*new_gd.x() + 1) as usize][*new_gd.y() as usize] = new_domino.get_tile(2);
+        } else if angle < PI * 3.0 / 4.0 {
+            // LEFT
+            self.tile_map[*new_gd.x() as usize][(*new_gd.y() + 1) as usize] = new_domino.get_tile(2);
+        } else if angle < PI * 5.0 / 4.0 {
+            // DOWN
+            self.tile_map[(*new_gd.x() - 1) as usize][*new_gd.y() as usize] = new_domino.get_tile(2);
+        } else {
+            // RIGHT
+            self.tile_map[*new_gd.x() as usize][(*new_gd.y() - 1) as usize] = new_domino.get_tile(2);
+        }
+        return;
+    }
 }

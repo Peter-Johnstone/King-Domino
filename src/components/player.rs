@@ -1,5 +1,7 @@
 use crate::components::domino::Domino;
 use crate::components::grid::Grid;
+use crate::components::grid_domino::{self, GridDomino};
+use crate::gui::{Gui, PlacementDominoRotation};
 
 #[derive(Clone)]
 pub(crate) struct Player {
@@ -52,19 +54,26 @@ impl Player {
     pub(crate) fn placing(&self)->Domino{self.placing}
 
     // TODO: IMPLEMENT/
-    pub(crate) fn domino_placement(&mut self) -> bool {
+    pub(crate) fn domino_placement(&mut self, curr_orientation: &PlacementDominoRotation, curr_socket_vec: &Vec<[f32; 6]>) -> Option<GridDomino> {
         assert_ne!(self.placing.id(), 100, "For some reason the maps are trying to be built with a null domino");
         let has_room_left = self.grid.build_maps(self.placing); //builds botmaps and the directional bool maps
         if !has_room_left {
             println!("there was no room left for player {}", self.id()); // occurs when the bot_maps vec is of len ==0
-            return true;
+            return None;
+        }
+        let new_domino: Option<GridDomino> = Gui::picked_socket(&self, curr_orientation, curr_socket_vec);
+        match new_domino {
+            Some(domino) => {
+                self.grid.push_domino_map(domino);
+                new_domino
+            }
+            None => {new_domino}
         }
         /*
 TODO:
 
         --GUI--
-        X) gui should display all sockets valid for self.domino_rotation
-        X) Gui needs to detect a click when each socket is pressed, sends socket and rotation back here.
+        X) Gui needs to detect a click when each socket is pressed, sends griddomino back here.
         X) self.grid.position_selected(&mut self, self.picking.id(), x, y, rotation in radians)
         X) self.placing = Domino::null()
         X) undraw picked domino
@@ -75,7 +84,6 @@ TODO:
         // Also each grid is a vector of vectors... so... Also each grid has Tiles specifically
         // let grid_vec: Vec<Vec<Vec<Tile>>> = self.grid.some_func(self.picked);
         // Have gui allow the user to parse the possible options
-        return false;
     }
 
 }
